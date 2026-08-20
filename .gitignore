@@ -1,0 +1,22 @@
+# Environment and secrets
+.env
+.env.local
+*.pem
+
+# JavaScript
+node_modules/
+.next/
+out/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+
+# Tooling
+.coverage
+coverage/
+.DS_Store
