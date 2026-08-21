@@ -10,6 +10,7 @@ import {
   Boxes,
   FileSpreadsheet,
   BarChart3,
+  TrendingUp,
   LogOut,
   User,
   ShieldCheck,
@@ -27,6 +28,7 @@ export function Nav() {
 
   const navLinks = [
     { href: "/dashboard", label: "Command Centre", icon: LayoutDashboard },
+    { href: "/forecasts", label: "Forecasts", icon: TrendingUp },
     { href: "/facilities", label: "Facilities", icon: Building2 },
     { href: "/inventory", label: "Inventory", icon: Boxes },
     { href: "/consumption", label: "Consumption", icon: FileSpreadsheet },

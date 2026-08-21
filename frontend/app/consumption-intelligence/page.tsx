@@ -45,7 +45,7 @@ export default function ConsumptionIntelligencePage() {
 
   const chart = useMemo(() => data?.series.slice(-30) ?? [], [data]);
   const chartMax = Math.max(1, ...chart.map((point) => point.quantity_consumed));
-  const change = data?.summary.recent_demand_change_percent;
+  const change = data?.summary.recent_demand_change_percent ?? null;
   return <>
     <Nav />
     <main className="mx-auto max-w-7xl p-6">
