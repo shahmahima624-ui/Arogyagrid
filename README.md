@@ -4,7 +4,7 @@
 
 AarogyaGrid is a medicine supply resilience platform for public healthcare facilities. It will help district teams monitor inventory, forecast consumption, identify stock-out risk, rescue medicines approaching expiry, and safely recommend human-approved redistribution.
 
-## Phase 0 status
+## Current implementation status
 
 This repository now provides the Phase 1 operational foundation:
 
@@ -15,9 +15,22 @@ This repository now provides the Phase 1 operational foundation:
 - Frontend-to-backend health connectivity check
 - Core district, facility, warehouse, medicine, inventory, and consumption APIs
 - Alembic migration scaffold and deterministic synthetic seed script
-- Facilities, inventory, consumption, and dashboard pages
+- Facilities, inventory, consumption, dashboard, and consumption intelligence pages
+- Deterministic consumption aggregation, feature engineering, and a gap-filled facility-medicine time series API
 
-Forecasting, risk assessment, transfers, authentication, and AI features have not been implemented yet.
+Demand forecasting, stock-out risk assessment, transfers, and AI features have not been implemented yet.
+
+## Phase 4: Consumption intelligence
+
+`GET /api/consumption-intelligence/series` prepares a chronological daily series for one facility and medicine. It aggregates multiple records on the same day, fills missing days with zero consumption, excludes expired stock from `current_usable_stock`, and provides deterministic ML-ready features: lags (1/7/14), rolling means (7/14), rolling standard deviation, calendar features, patient count, and current stock.
+
+Example:
+
+```text
+GET /api/consumption-intelligence/series?facility_id=<uuid>&medicine_id=<uuid>&days=90
+```
+
+The `/consumption-intelligence` frontend page provides a 90-day trend, average daily demand, and recent demand change. These are historical indicators, not forecasts.
 
 ## Project structure
 

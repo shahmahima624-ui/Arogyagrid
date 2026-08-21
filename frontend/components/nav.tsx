@@ -9,6 +9,7 @@ import {
   Building2,
   Boxes,
   FileSpreadsheet,
+  BarChart3,
   LogOut,
   User,
   ShieldCheck,
@@ -29,6 +30,7 @@ export function Nav() {
     { href: "/facilities", label: "Facilities", icon: Building2 },
     { href: "/inventory", label: "Inventory", icon: Boxes },
     { href: "/consumption", label: "Consumption", icon: FileSpreadsheet },
+    { href: "/consumption-intelligence", label: "Insights", icon: BarChart3 },
   ];
 
   const getRoleBadgeColor = (role?: string) => {
