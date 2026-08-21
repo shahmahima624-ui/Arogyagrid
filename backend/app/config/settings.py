@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     app_name: str = "AarogyaGrid API"
     database_url: str = "postgresql+psycopg://aarogyagrid:change-me@localhost:5432/aarogyagrid"
     cors_origins: str = "http://localhost:3000"
+    firebase_project_id: str | None = None
+    mock_auth: bool = True
 
     @property
     def cors_origin_list(self) -> list[str]:

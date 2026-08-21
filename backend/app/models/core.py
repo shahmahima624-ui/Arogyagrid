@@ -107,3 +107,16 @@ class ConsumptionRecord(Base):
     quantity_consumed: Mapped[int] = mapped_column(Integer, nullable=False)
     patient_count: Mapped[int | None] = mapped_column(Integer)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("users.id"))
+    facility_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("facilities.id"))
+    action: Mapped[str] = mapped_column(String(100), nullable=False)
+    entity: Mapped[str] = mapped_column(String(100), nullable=False)
+    entity_id: Mapped[uuid.UUID | None] = mapped_column(Uuid)
+    description: Mapped[str] = mapped_column(String(500), nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+

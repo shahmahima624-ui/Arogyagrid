@@ -5,7 +5,7 @@ from datetime import date, timedelta
 
 from app.db.base import Base
 from app.db.session import SessionLocal, engine
-from app.models.core import ConsumptionRecord, District, Facility, InventoryBatch, Medicine, Warehouse
+from app.models.core import ConsumptionRecord, District, Facility, InventoryBatch, Medicine, Warehouse, User
 
 
 MEDICINES = [
@@ -66,6 +66,55 @@ def main() -> None:
                     db.add(ConsumptionRecord(facility_id=facility.id, medicine_id=medicine.id, date=today - timedelta(days=days_ago), quantity_consumed=random.randint(4, 22), patient_count=random.randint(8, 40)))
         for medicine in medicines:
             db.add(InventoryBatch(warehouse_id=warehouse.id, medicine_id=medicine.id, batch_number=f"WH-{medicine.id.hex[:6]}", quantity=random.randint(1200, 3000), expiry_date=today + timedelta(days=random.randint(120, 540))))
+
+        sanand_facility = next(f for f in facilities if "Sanand" in f.name)
+        rampura_facility = next(f for f in facilities if "Rampura" in f.name)
+        users_to_seed = [
+            User(
+                firebase_uid="mock-district-admin",
+                name="Dr. Amit Patel",
+                email="district.admin@aarogyagrid.org",
+                role="DISTRICT_ADMIN",
+                district_id=district.id,
+                status="ACTIVE"
+            ),
+            User(
+                firebase_uid="mock-facility-admin-sanand",
+                name="Dr. Priya Shah",
+                email="sanand.admin@aarogyagrid.org",
+                role="FACILITY_ADMIN",
+                facility_id=sanand_facility.id,
+                district_id=district.id,
+                status="ACTIVE"
+            ),
+            User(
+                firebase_uid="mock-healthcare-staff-sanand",
+                name="Nurse Ramesh Kumar",
+                email="sanand.staff@aarogyagrid.org",
+                role="HEALTHCARE_STAFF",
+                facility_id=sanand_facility.id,
+                district_id=district.id,
+                status="ACTIVE"
+            ),
+            User(
+                firebase_uid="mock-warehouse-manager",
+                name="Rajesh Sharma",
+                email="warehouse.manager@aarogyagrid.org",
+                role="WAREHOUSE_MANAGER",
+                district_id=district.id,
+                status="ACTIVE"
+            ),
+            User(
+                firebase_uid="mock-facility-admin-rampura",
+                name="Dr. Vikram Mehta",
+                email="rampura.admin@aarogyagrid.org",
+                role="FACILITY_ADMIN",
+                facility_id=rampura_facility.id,
+                district_id=district.id,
+                status="ACTIVE"
+            )
+        ]
+        db.add_all(users_to_seed)
         db.commit()
         print("Synthetic Phase 1 data seeded.")
     finally:

@@ -99,3 +99,34 @@ class ConsumptionCreate(BaseModel):
 class ConsumptionOut(ConsumptionCreate, ORMModel):
     id: uuid.UUID
     created_at: datetime
+
+
+class UserCreate(BaseModel):
+    firebase_uid: str
+    name: str = Field(min_length=2, max_length=160)
+    email: str = Field(min_length=3, max_length=254)
+    role: str
+    facility_id: uuid.UUID | None = None
+    district_id: uuid.UUID | None = None
+
+
+class UserOut(UserCreate, ORMModel):
+    id: uuid.UUID
+    status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class AuditLogCreate(BaseModel):
+    action: str
+    entity: str
+    entity_id: uuid.UUID | None = None
+    description: str
+    facility_id: uuid.UUID | None = None
+
+
+class AuditLogOut(AuditLogCreate, ORMModel):
+    id: uuid.UUID
+    user_id: uuid.UUID | None = None
+    timestamp: datetime
+

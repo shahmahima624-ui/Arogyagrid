@@ -7,6 +7,8 @@ from sqlalchemy.pool import StaticPool
 
 from app.db.base import Base
 from app.db.session import get_db
+from app.core.dependencies import get_current_user
+from app.models.core import User
 from app.main import app
 
 
@@ -25,8 +27,19 @@ def override_db():
 def test_core_domain_crud_and_inventory_validation() -> None:
     Base.metadata.drop_all(engine)
     Base.metadata.create_all(engine)
+    
+    mock_user = User(
+        firebase_uid="mock-district-admin",
+        name="Test District Admin",
+        email="district.admin@test.org",
+        role="DISTRICT_ADMIN",
+        status="ACTIVE"
+    )
+    
     app.dependency_overrides[get_db] = override_db
+    app.dependency_overrides[get_current_user] = lambda: mock_user
     client = TestClient(app)
+
 
     district = client.post("/api/districts", json={"name": "Test District", "state": "Gujarat"}).json()
     facility = client.post("/api/facilities", json={"district_id": district["id"], "name": "PHC Test", "facility_type": "PHC"}).json()
