@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthProvider } from "../lib/auth-context";
 
 export const metadata: Metadata = {
-  title: "AarogyaGrid",
-  description: "Medicine supply resilience network",
+  title: "AarogyaGrid — Healthcare Medicine Supply Command Centre",
+  description: "AI-powered medicine supply resilience network for PHCs, CHCs, and District Hospitals.",
 };
 
 export default function RootLayout({
@@ -11,7 +12,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-slate-50 text-slate-900 antialiased min-h-screen">
+        <AuthProvider>{children}</AuthProvider>
+      </body>
     </html>
   );
 }
