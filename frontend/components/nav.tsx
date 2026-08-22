@@ -19,6 +19,7 @@ import {
   Mic,
   ScanLine,
   MapPin,
+  FileText,
   LogOut,
   User,
   ShieldCheck,
@@ -45,6 +46,7 @@ export function Nav() {
     { href: "/register-digitisation", label: "Register Scan", icon: ScanLine },
     { href: "/map", label: "Geo Network", icon: MapPin },
     { href: "/stress-simulator", label: "Simulator", icon: Activity },
+    { href: "/reports", label: "Reports", icon: FileText },
 
     { href: "/forecasts", label: "Forecasts", icon: TrendingUp },
     { href: "/facilities", label: "Facilities", icon: Building2 },
