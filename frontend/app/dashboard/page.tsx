@@ -22,6 +22,12 @@ import {
   ShieldCheck,
   TrendingDown,
   Warehouse,
+  Truck,
+  Bot,
+  Mic,
+  ScanLine,
+  MapPin,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -113,7 +119,6 @@ export default function Dashboard() {
       const res = await api<CommandCenterData>("/dashboard/command-center");
       setData(res);
     } catch {
-      // Fallback synthetic baseline if backend is launching
       setData(null);
     } finally {
       setLoading(false);
@@ -123,7 +128,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadData();
-    const interval = setInterval(loadData, 30000); // 30s live poll
+    const interval = setInterval(loadData, 30000);
     return () => clearInterval(interval);
   }, [loadData, user]);
 
@@ -141,167 +146,165 @@ export default function Dashboard() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "CRITICAL":
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">🚨 CRITICAL</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">🚨 CRITICAL</span>;
       case "WARNING":
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">⚠️ WARNING</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">⚠️ WARNING</span>;
       default:
-        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">✓ NORMAL</span>;
+        return <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200">✓ NORMAL</span>;
     }
   };
 
   const getUrgencyBadge = (urgency: string, days: number) => {
     if (urgency === "CRITICAL_30") {
-      return <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-rose-600 text-slate-900">⚡ {days}d left</span>;
+      return <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300">⚡ {days}d remaining</span>;
     }
     if (urgency === "WARNING_60") {
-      return <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-500 text-slate-900">⏳ {days}d left</span>;
+      return <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">⏳ {days}d remaining</span>;
     }
-    return <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300">{days}d left</span>;
+    return <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200">{days}d remaining</span>;
   };
 
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-white text-slate-900 pb-16">
-        {/* Command Centre Top Banner */}
-        <div className="border-b border-slate-200 bg-white/95 backdrop-blur px-4 sm:px-6 lg:px-8 py-6">
-          <div className="mx-auto max-w-7xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <main className="min-h-screen bg-slate-50 text-slate-900 pb-16">
+        {/* District Operations Top Header Banner */}
+        <div className="border-b border-slate-200 bg-white px-4 sm:px-6 lg:px-8 py-5 shadow-2xs">
+          <div className="mx-auto max-w-screen-2xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
-                <p className="text-xs font-bold uppercase tracking-widest text-emerald-400">
-                  Real-Time Situational Awareness
+                <span className="flex h-2.5 w-2.5 rounded-full bg-teal-600 animate-ping" />
+                <p className="text-xs font-bold uppercase tracking-widest text-teal-800">
+                  District Operations Portal
                 </p>
-                <span className="text-slate-500">•</span>
-                <span className="text-xs text-slate-500">
-                  Scope: {user?.role === "DISTRICT_ADMIN" ? "District Central Command (All Facilities)" : "Scoped Facility Portal"}
+                <span className="text-slate-400">•</span>
+                <span className="text-xs text-slate-500 font-medium">
+                  Jurisdiction: {user?.role === "DISTRICT_ADMIN" ? "District Central Command (All Facilities)" : "Facility Operational Unit"}
                 </span>
               </div>
-              <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                Medicine Resilience Command Centre
+              <h1 className="mt-1 text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                District Health Operations Platform (DHOP)
               </h1>
             </div>
 
             <div className="flex items-center gap-3 self-start md:self-auto">
               <span className="text-xs text-slate-500 hidden sm:inline-block">
-                Last updated: {data?.as_of ? new Date(data.as_of).toLocaleTimeString() : "Live"}
+                Synced: {data?.as_of ? new Date(data.as_of).toLocaleTimeString() : "Live"}
               </span>
               <button
                 onClick={loadData}
                 disabled={refreshing}
-                className="inline-flex items-center gap-2 rounded-lg bg-slate-100 hover:bg-slate-700 border border-slate-200 px-3.5 py-2 text-xs font-medium text-slate-700 transition-colors shadow-xs"
+                className="inline-flex items-center gap-2 rounded-lg bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 text-xs font-bold transition-all shadow-xs"
               >
-                <RefreshCw className={`h-3.5 w-3.5 text-emerald-400 ${refreshing ? "animate-spin" : ""}`} />
-                {refreshing ? "Syncing..." : "Sync Live Data"}
+                <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? "animate-spin" : ""}`} />
+                {refreshing ? "Updating..." : "Refresh Live Operations"}
               </button>
             </div>
           </div>
         </div>
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
-          {/* Static Alert Notice */}
-          <div className="mb-6 rounded-xl border border-emerald-900/60 bg-emerald-950/30 p-3.5 text-xs text-emerald-300 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 font-bold uppercase tracking-wider text-[11px] text-emerald-400 border border-emerald-500/30">
-                Phase 3 Command Baseline
+        <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 pt-6">
+          {/* Operational Baseline Banner */}
+          <div className="mb-6 rounded-xl border border-teal-200 bg-teal-50/60 p-4 text-xs text-teal-900 flex items-center justify-between shadow-2xs">
+            <div className="flex items-center gap-3">
+              <span className="rounded-md bg-teal-700 px-2.5 py-1 font-extrabold uppercase tracking-wider text-[10px] text-white">
+                Operational Status
               </span>
-              <span>All threshold metrics below are calculated from deterministic real-time inventory counts and labeled as <strong>Current Stock Alerts</strong>.</span>
+              <span className="font-medium">
+                Unified district monitoring active across <strong>PHCs, CHCs, and District Central Stores</strong>. Real-time telemetry & stock distribution online.
+              </span>
             </div>
-            <span className="text-slate-500 hidden lg:inline">Phase 4-8 AI layers connect on top of this foundation.</span>
+            <div className="hidden lg:flex items-center gap-4 text-xs font-bold text-teal-800">
+              <Link href="/map" className="hover:underline flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5" /> Geo Map View
+              </Link>
+              <Link href="/transfers" className="hover:underline flex items-center gap-1">
+                <Truck className="h-3.5 w-3.5" /> Pending Transfers ({data?.kpis.pending_transfers_count ?? 0})
+              </Link>
+            </div>
           </div>
 
-          {/* 6 Hero KPI Metric Cards */}
-          <section className="grid grid-cols-2 lg:grid-cols-6 gap-3.5 sm:gap-4 mb-8">
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm backdrop-blur">
+          {/* 5 Core DHOP Operational KPI Cards */}
+          <section className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs hover:border-teal-300 transition-all">
               <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-medium">Total Facilities</span>
-                <Building2 className="h-4 w-4 text-emerald-400" />
+                <span className="text-xs font-semibold uppercase tracking-wider">Health Centers</span>
+                <Building2 className="h-4 w-4 text-teal-600" />
               </div>
               <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-900">
                 {loading ? "..." : (data?.kpis.total_facilities ?? 0)}
               </p>
-              <p className="mt-1 text-[11px] text-slate-500">PHCs, CHCs, Hospital</p>
+              <p className="mt-1 text-[11px] text-slate-500 font-medium">Active Jurisdiction Nodes</p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm backdrop-blur">
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs hover:border-blue-300 transition-all">
               <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-medium">Catalog Meds</span>
-                <Boxes className="h-4 w-4 text-blue-400" />
+                <span className="text-xs font-semibold uppercase tracking-wider">Catalog Medicines</span>
+                <Boxes className="h-4 w-4 text-blue-600" />
               </div>
               <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-900">
                 {loading ? "..." : (data?.kpis.total_medicines ?? 0)}
               </p>
-              <p className="mt-1 text-[11px] text-slate-500">Essential Catalogue</p>
+              <p className="mt-1 text-[11px] text-slate-500 font-medium">Essential Medicine List</p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm backdrop-blur">
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs hover:border-cyan-300 transition-all">
               <div className="flex items-center justify-between text-slate-500">
-                <span className="text-xs font-medium">Total Inventory</span>
-                <Layers className="h-4 w-4 text-cyan-400" />
+                <span className="text-xs font-semibold uppercase tracking-wider">Total Stock Units</span>
+                <Layers className="h-4 w-4 text-cyan-600" />
               </div>
               <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-900">
                 {loading ? "..." : (data?.kpis.total_inventory_units.toLocaleString() ?? "0")}
               </p>
-              <p className="mt-1 text-[11px] text-slate-500">Active Units in Grid</p>
+              <p className="mt-1 text-[11px] text-slate-500 font-medium">District Inventory Count</p>
             </div>
 
-            <div className="rounded-2xl border border-rose-900/60 bg-rose-950/20 p-4 shadow-sm backdrop-blur ring-1 ring-rose-500/20">
-              <div className="flex items-center justify-between text-rose-300">
-                <span className="text-xs font-medium">Low Stock Alerts</span>
-                <TrendingDown className="h-4 w-4 text-rose-400" />
+            <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-4 shadow-xs hover:border-rose-300 transition-all">
+              <div className="flex items-center justify-between text-rose-700">
+                <span className="text-xs font-bold uppercase tracking-wider">Low Stock Items</span>
+                <TrendingDown className="h-4 w-4 text-rose-600" />
               </div>
-              <p className="mt-2 text-2xl sm:text-3xl font-black text-rose-400">
+              <p className="mt-2 text-2xl sm:text-3xl font-black text-rose-700">
                 {loading ? "..." : (data?.kpis.low_stock_items_count ?? 0)}
               </p>
-              <p className="mt-1 text-[11px] text-rose-300/80">Current Stock Alerts</p>
+              <p className="mt-1 text-[11px] text-rose-800 font-medium">Immediate Reorder Needed</p>
             </div>
 
-            <div className="rounded-2xl border border-amber-900/60 bg-amber-950/20 p-4 shadow-sm backdrop-blur ring-1 ring-amber-500/20">
-              <div className="flex items-center justify-between text-amber-300">
-                <span className="text-xs font-medium">Expiring &le; 90d</span>
-                <Clock className="h-4 w-4 text-amber-400" />
+            <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-4 shadow-xs hover:border-amber-300 transition-all">
+              <div className="flex items-center justify-between text-amber-700">
+                <span className="text-xs font-bold uppercase tracking-wider">Expiring &le; 90d</span>
+                <Clock className="h-4 w-4 text-amber-600" />
               </div>
-              <p className="mt-2 text-2xl sm:text-3xl font-black text-amber-400">
+              <p className="mt-2 text-2xl sm:text-3xl font-black text-amber-700">
                 {loading ? "..." : (data?.kpis.expiring_soon_count ?? 0)}
               </p>
-              <p className="mt-1 text-[11px] text-amber-300/80">Batches to Rescue</p>
-            </div>
-
-            <div className="rounded-2xl border border-purple-900/60 bg-purple-950/20 p-4 shadow-sm backdrop-blur ring-1 ring-purple-500/20">
-              <div className="flex items-center justify-between text-purple-300">
-                <span className="text-xs font-medium">Critical Nodes</span>
-                <ShieldAlert className="h-4 w-4 text-purple-400" />
-              </div>
-              <p className="mt-2 text-2xl sm:text-3xl font-black text-purple-400">
-                {loading ? "..." : (data?.kpis.critical_facilities_count ?? 0)}
-              </p>
-              <p className="mt-1 text-[11px] text-purple-300/80">Facilities needing stock</p>
+              <p className="mt-1 text-[11px] text-amber-800 font-medium">FEFO Rescue Candidates</p>
             </div>
           </section>
 
-          {/* Tab Navigation */}
+          {/* Operational Tab Navigation */}
           <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 mb-6 pb-2">
             {[
-              { id: "facilities", label: "Facility Health Matrix", icon: Building2, count: data?.facility_health.length },
-              { id: "alerts", label: "Current Stock & Expiry Alerts", icon: AlertTriangle, count: (data?.expiry_alerts.length ?? 0) + (data?.stock_alerts.length ?? 0) },
-              { id: "categories", label: "Category Distribution", icon: PieChart, count: data?.category_distribution.length },
-              { id: "activity", label: "Live Audit & Activity", icon: History, count: data?.recent_activity.length },
+              { id: "facilities", label: "Health Center Operations Matrix", icon: Building2, count: data?.facility_health.length },
+              { id: "alerts", label: "Stockout & Expiry Alerts", icon: AlertTriangle, count: (data?.expiry_alerts.length ?? 0) + (data?.stock_alerts.length ?? 0) },
+              { id: "categories", label: "Medicine Category Breakdown", icon: PieChart, count: data?.category_distribution.length },
+              { id: "activity", label: "Operational Audit Feed", icon: History, count: data?.recent_activity.length },
             ].map(({ id, label, icon: Icon, count }) => {
               const active = activeTab === id;
               return (
                 <button
                   key={id}
                   onClick={() => setActiveTab(id as typeof activeTab)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-extrabold transition-all ${
                     active
-                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-xs"
-                      : "text-slate-500 hover:text-slate-700 hover:bg-white border border-transparent"
+                      ? "bg-teal-700 text-white shadow-xs"
+                      : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
                   }`}
                 >
-                  <Icon className={`h-4 w-4 ${active ? "text-emerald-400" : "text-slate-500"}`} />
+                  <Icon className={`h-4 w-4 ${active ? "text-white" : "text-slate-500"}`} />
                   <span>{label}</span>
                   {count !== undefined && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${active ? "bg-emerald-500/30 text-emerald-200" : "bg-slate-100 text-slate-500"}`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${active ? "bg-teal-900 text-teal-100" : "bg-slate-100 text-slate-600"}`}>
                       {count}
                     </span>
                   )}
@@ -310,19 +313,18 @@ export default function Dashboard() {
             })}
           </div>
 
-          {/* VIEW 1: Facility Health Matrix */}
+          {/* TAB 1: Health Center Operations Matrix */}
           {activeTab === "facilities" && (
             <div className="space-y-4">
-              {/* Search & Filters */}
-              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200">
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
                 <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search facilities by name or type..."
-                    className="w-full pl-9 pr-4 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    placeholder="Search health centers by name or type..."
+                    className="w-full pl-9 pr-4 py-2 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent font-medium"
                   />
                 </div>
                 <div className="flex items-center gap-2">
@@ -330,9 +332,9 @@ export default function Dashboard() {
                   <select
                     value={facilityTypeFilter}
                     onChange={(e) => setFacilityTypeFilter(e.target.value)}
-                    className="bg-white border border-slate-200 text-sm rounded-lg px-3 py-2 text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                    className="bg-slate-50 border border-slate-200 text-xs font-semibold rounded-lg px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent"
                   >
-                    <option value="ALL">All Facility Types</option>
+                    <option value="ALL">All Health Center Types</option>
                     <option value="PHC">PHC (Primary Health Centre)</option>
                     <option value="CHC">CHC (Community Health Centre)</option>
                     <option value="HOSPITAL">District Hospital</option>
@@ -340,70 +342,69 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Facilities Table / Grid */}
-              <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-slate-50 backdrop-blur shadow-sm">
+              <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-xs">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-50">
-                      <th className="px-6 py-4">Facility Name & Type</th>
-                      <th className="px-6 py-4">District</th>
-                      <th className="px-6 py-4">Total Stock Units</th>
-                      <th className="px-6 py-4">Current Stock Alerts</th>
-                      <th className="px-6 py-4">Expiring &le; 90d</th>
-                      <th className="px-6 py-4">Resilience Status</th>
-                      <th className="px-6 py-4 text-right">Actions</th>
+                    <tr className="border-b border-slate-200 text-[11px] font-extrabold uppercase tracking-wider text-slate-500 bg-slate-50/80">
+                      <th className="px-6 py-3.5">Health Center Name & Type</th>
+                      <th className="px-6 py-3.5">District Jurisdiction</th>
+                      <th className="px-6 py-3.5">Total Inventory Units</th>
+                      <th className="px-6 py-3.5">Low Stock Items</th>
+                      <th className="px-6 py-3.5">Near Expiry Batches</th>
+                      <th className="px-6 py-3.5">Operational Status</th>
+                      <th className="px-6 py-3.5 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 text-sm">
+                  <tbody className="divide-y divide-slate-100 text-xs font-medium">
                     {filteredFacilities.length === 0 ? (
                       <tr>
                         <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
-                          No facilities match the active filter criteria.
+                          No health centers match the selected filters.
                         </td>
                       </tr>
                     ) : (
                       filteredFacilities.map((fac) => (
-                        <tr key={fac.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="font-semibold text-slate-900 flex items-center gap-2">
-                              <Building2 className="h-4 w-4 text-emerald-400" />
+                        <tr key={fac.id} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="px-6 py-3.5">
+                            <div className="font-bold text-slate-900 flex items-center gap-2 text-sm">
+                              <Building2 className="h-4 w-4 text-teal-700" />
                               {fac.name}
                             </div>
-                            <span className="text-xs text-slate-500 font-mono">
+                            <span className="text-[11px] text-slate-500">
                               Type: {fac.facility_type}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-slate-600">
+                          <td className="px-6 py-3.5 text-slate-600 font-semibold">
                             {fac.district_name}
                           </td>
-                          <td className="px-6 py-4 font-mono font-semibold text-slate-700">
+                          <td className="px-6 py-3.5 font-mono font-bold text-slate-800">
                             {fac.total_stock.toLocaleString()} units
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-3.5">
                             {fac.low_stock_count > 0 ? (
-                              <span className="inline-flex items-center gap-1 font-semibold text-rose-400 text-xs px-2 py-0.5 rounded-md bg-rose-950/40 border border-rose-800/50">
+                              <span className="inline-flex items-center gap-1 font-bold text-rose-700 text-[11px] px-2 py-0.5 rounded bg-rose-50 border border-rose-200">
                                 ⚠️ {fac.low_stock_count} item(s)
                               </span>
                             ) : (
-                              <span className="text-xs text-slate-500">None</span>
+                              <span className="text-slate-400">None</span>
                             )}
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-3.5">
                             {fac.expiring_count > 0 ? (
-                              <span className="inline-flex items-center gap-1 font-semibold text-amber-400 text-xs px-2 py-0.5 rounded-md bg-amber-950/40 border border-amber-800/50">
+                              <span className="inline-flex items-center gap-1 font-bold text-amber-700 text-[11px] px-2 py-0.5 rounded bg-amber-50 border border-amber-200">
                                 ⏳ {fac.expiring_count} batch(es)
                               </span>
                             ) : (
-                              <span className="text-xs text-slate-500">0</span>
+                              <span className="text-slate-400">0</span>
                             )}
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-6 py-3.5">
                             {getStatusBadge(fac.status)}
                           </td>
-                          <td className="px-6 py-4 text-right">
+                          <td className="px-6 py-3.5 text-right">
                             <Link
                               href="/inventory"
-                              className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-400 hover:text-emerald-300 hover:underline"
+                              className="inline-flex items-center gap-1 text-xs font-bold text-teal-700 hover:text-teal-900 hover:underline"
                             >
                               Inspect Inventory <ExternalLink className="h-3 w-3" />
                             </Link>
@@ -417,26 +418,25 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* VIEW 2: Current Stock & Expiry Alerts */}
+          {/* TAB 2: Alerts Grid */}
           {activeTab === "alerts" && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Expiry Alerts Section */}
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 backdrop-blur">
+              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-amber-400" />
-                      Upcoming Batch Expiries
+                    <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-amber-600" />
+                      Near Expiry Medicine Batches
                     </h3>
-                    <p className="text-xs text-slate-500">Batches expiring within 90 days across facilities</p>
+                    <p className="text-xs text-slate-500">Expiring within 90 days across facilities</p>
                   </div>
-                  <div className="flex gap-1 bg-slate-900 p-1 rounded-lg border border-slate-200 text-xs">
+                  <div className="flex gap-1 bg-slate-100 p-1 rounded-lg text-xs font-semibold">
                     {(["ALL", "CRITICAL_30", "WARNING_60"] as const).map((urg) => (
                       <button
                         key={urg}
                         onClick={() => setExpiryFilter(urg)}
-                        className={`px-2 py-1 rounded-md font-medium transition-colors ${
-                          expiryFilter === urg ? "bg-amber-500/20 text-amber-300" : "text-slate-500 hover:text-slate-700"
+                        className={`px-2 py-1 rounded transition-colors ${
+                          expiryFilter === urg ? "bg-amber-600 text-white font-bold" : "text-slate-600 hover:text-slate-900"
                         }`}
                       >
                         {urg === "ALL" ? "All" : urg === "CRITICAL_30" ? "≤ 30d" : "31-60d"}
@@ -445,28 +445,28 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
+                <div className="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
                   {filteredExpiries.length === 0 ? (
-                    <p className="text-sm text-slate-500 text-center py-12">No active expiry alerts in this category.</p>
+                    <p className="text-xs text-slate-500 text-center py-10">No active expiry alerts in this tier.</p>
                   ) : (
                     filteredExpiries.map((exp) => (
                       <div
                         key={exp.batch_id}
-                        className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between hover:border-slate-200 transition-colors"
+                        className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 flex items-center justify-between hover:bg-slate-100/60 transition-colors text-xs"
                       >
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-slate-900">{exp.medicine_name}</span>
-                            <span className="text-xs font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
-                              {exp.batch_number}
+                            <span className="font-bold text-slate-900">{exp.medicine_name}</span>
+                            <span className="text-[11px] font-mono text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded">
+                              #{exp.batch_number}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-500 mt-1">
-                            📍 {exp.facility_name ?? exp.warehouse_name ?? "District Facility"} • Category: {exp.category}
+                          <p className="text-[11px] text-slate-500 mt-0.5">
+                            📍 {exp.facility_name ?? exp.warehouse_name ?? "District Store"} • {exp.category}
                           </p>
                         </div>
                         <div className="text-right">
-                          <div className="font-mono font-bold text-slate-900 text-sm">
+                          <div className="font-mono font-bold text-slate-900">
                             {exp.quantity.toLocaleString()} units
                           </div>
                           <div className="mt-1">
@@ -479,45 +479,44 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Current Stock Alerts Section */}
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 backdrop-blur">
+              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                      <TrendingDown className="h-5 w-5 text-rose-400" />
-                      Current Stock Alerts
+                    <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                      <TrendingDown className="h-5 w-5 text-rose-600" />
+                      Low Stock Threshold Alerts
                     </h3>
-                    <p className="text-xs text-slate-500">Medicines below static reorder threshold (150 units)</p>
+                    <p className="text-xs text-slate-500">Medicines below reorder threshold (150 units)</p>
                   </div>
-                  <span className="text-xs px-2.5 py-1 rounded-full bg-rose-950/40 border border-rose-800/50 text-rose-300 font-semibold">
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-rose-100 border border-rose-200 text-rose-800 font-extrabold">
                     {data?.stock_alerts.length ?? 0} Alerts
                   </span>
                 </div>
 
-                <div className="space-y-3 max-h-[520px] overflow-y-auto pr-1">
+                <div className="space-y-2.5 max-h-[500px] overflow-y-auto pr-1">
                   {(!data?.stock_alerts || data.stock_alerts.length === 0) ? (
-                    <p className="text-sm text-slate-500 text-center py-12">All facility medicine stocks are within adequate thresholds.</p>
+                    <p className="text-xs text-slate-500 text-center py-10">All medicine stocks are within safety thresholds.</p>
                   ) : (
                     data.stock_alerts.map((stk, idx) => (
                       <div
                         key={`${stk.facility_id}-${stk.medicine_id}-${idx}`}
-                        className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between hover:border-slate-200 transition-colors"
+                        className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 flex items-center justify-between hover:bg-slate-100/60 transition-colors text-xs"
                       >
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-slate-900">{stk.medicine_name}</span>
-                            <span className="text-xs text-slate-500">({stk.category})</span>
+                            <span className="font-bold text-slate-900">{stk.medicine_name}</span>
+                            <span className="text-[11px] text-slate-500">({stk.category})</span>
                           </div>
-                          <p className="text-xs text-slate-500 mt-1">
+                          <p className="text-[11px] text-slate-500 mt-0.5">
                             📍 {stk.facility_name}
                           </p>
                         </div>
                         <div className="text-right">
                           <span
-                            className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                            className={`inline-block px-2.5 py-0.5 rounded-md text-xs font-bold ${
                               stk.current_stock === 0
-                                ? "bg-rose-900/80 text-rose-200 border border-rose-600"
-                                : "bg-amber-900/80 text-amber-200 border border-amber-600"
+                                ? "bg-rose-100 text-rose-800 border border-rose-300"
+                                : "bg-amber-100 text-amber-800 border border-amber-300"
                             }`}
                           >
                             {stk.current_stock === 0 ? "OUT OF STOCK" : `${stk.current_stock} / ${stk.reorder_level} units`}
@@ -531,37 +530,36 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* VIEW 3: Category Distribution */}
+          {/* TAB 3: Category Breakdown */}
           {activeTab === "categories" && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-6 backdrop-blur">
-                <h3 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
-                  <PieChart className="h-5 w-5 text-emerald-400" />
-                  Medicine Category Breakdown
+              <div className="lg:col-span-2 rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+                <h3 className="text-base font-bold text-slate-900 mb-1 flex items-center gap-2">
+                  <PieChart className="h-5 w-5 text-teal-600" />
+                  Medicine Category Stock Distribution
                 </h3>
-                <p className="text-xs text-slate-500 mb-6">Stock unit distribution by therapeutic category across the district network</p>
+                <p className="text-xs text-slate-500 mb-5">Inventory distribution across therapeutic categories</p>
 
                 <div className="space-y-4">
                   {data?.category_distribution.map((cat) => {
                     const totalAll = data.kpis.total_inventory_units || 1;
                     const pct = Math.round((cat.total_units / totalAll) * 100);
                     return (
-                      <div key={cat.category} className="p-4 rounded-xl border border-slate-200 bg-slate-50">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-semibold text-slate-900">{cat.category}</span>
-                          <span className="font-mono text-sm font-bold text-emerald-400">
+                      <div key={cat.category} className="p-3.5 rounded-lg border border-slate-200 bg-slate-50/50">
+                        <div className="flex items-center justify-between mb-1.5 text-xs">
+                          <span className="font-bold text-slate-900">{cat.category}</span>
+                          <span className="font-mono font-bold text-teal-700">
                             {cat.total_units.toLocaleString()} units ({pct}%)
                           </span>
                         </div>
-                        {/* Progress bar */}
-                        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                        <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                           <div
-                            className="bg-emerald-500 h-full rounded-full transition-all duration-500"
-                            style={{ width: `${Math.max(pct, 4)}%` }}
+                            className="bg-teal-700 h-full rounded-full transition-all duration-500"
+                            style={{ width: `${Math.max(pct, 5)}%` }}
                           />
                         </div>
-                        <div className="flex items-center justify-between text-xs text-slate-500 mt-2">
-                          <span>{cat.medicine_count} catalog medicines</span>
+                        <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1.5 font-medium">
+                          <span>{cat.medicine_count} catalog items</span>
                           <span>{cat.batch_count} active batches</span>
                         </div>
                       </div>
@@ -570,76 +568,73 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Overview side panel */}
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 backdrop-blur flex flex-col justify-between">
+              <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
-                    <ShieldCheck className="h-5 w-5 text-emerald-400" />
-                    Network Summary
+                  <h3 className="text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-teal-600" />
+                    District Jurisdiction Overview
                   </h3>
-                  <p className="text-xs text-slate-500 mb-6">Aggregate resilience status for Ahmedabad Rural</p>
+                  <p className="text-xs text-slate-500 mb-5">Operational snapshot for District Health Administration</p>
 
-                  <div className="space-y-3">
-                    <div className="p-3.5 rounded-xl bg-white border border-slate-200">
-                      <span className="text-xs text-slate-500">Central Drug Warehouse</span>
-                      <p className="text-sm font-semibold text-slate-900 mt-1">Ahmedabad Central Store</p>
-                      <p className="text-xs text-emerald-400 mt-0.5">● Connected & Replenishing</p>
+                  <div className="space-y-3 text-xs">
+                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                      <span className="text-slate-500 font-semibold">Central District Drug Store</span>
+                      <p className="text-sm font-bold text-slate-900 mt-0.5">Ahmedabad District Central Warehouse</p>
+                      <p className="text-teal-700 font-bold mt-1">● Active Reserve Supply</p>
                     </div>
 
-                    <div className="p-3.5 rounded-xl bg-white border border-slate-200">
-                      <span className="text-xs text-slate-500">Critical Primary Health Centres</span>
-                      <p className="text-sm font-semibold text-slate-900 mt-1">PHC Sanand, PHC Rampura</p>
-                      <p className="text-xs text-amber-400 mt-0.5">Low inventory buffer on Amoxicillin</p>
+                    <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                      <span className="text-slate-500 font-semibold">High Priority Facilities</span>
+                      <p className="text-sm font-bold text-slate-900 mt-0.5">PHC Sanand, PHC Rampura</p>
+                      <p className="text-amber-700 font-bold mt-1">Stock monitoring active</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-slate-200">
+                <div className="mt-6 pt-4 border-t border-slate-200">
                   <Link
                     href="/inventory"
-                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-900 text-sm font-semibold transition-colors"
+                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold transition-colors shadow-xs"
                   >
-                    <Boxes className="h-4 w-4" /> Manage Full Inventory
+                    <Boxes className="h-4 w-4" /> Manage Full Medicine Inventory
                   </Link>
                 </div>
               </div>
             </div>
           )}
 
-          {/* VIEW 4: Live Activity & Audit Feed */}
+          {/* TAB 4: Live Activity & Audit */}
           {activeTab === "activity" && (
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 backdrop-blur">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <History className="h-5 w-5 text-emerald-400" />
-                    Live System Activity & Audit Trail
-                  </h3>
-                  <p className="text-xs text-slate-500">Immutable ledger of inventory updates, consumption reports, and user actions</p>
-                </div>
+            <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs">
+              <div className="mb-4">
+                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <History className="h-5 w-5 text-teal-600" />
+                  Operational System Activity & Audit Trail
+                </h3>
+                <p className="text-xs text-slate-500">Real-time ledger of medicine transfers, consumption logs, and user actions</p>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {(!data?.recent_activity || data.recent_activity.length === 0) ? (
-                  <p className="text-sm text-slate-500 text-center py-12">No recent audit log entries recorded yet.</p>
+                  <p className="text-xs text-slate-500 text-center py-10">No recent activity logged.</p>
                 ) : (
                   data.recent_activity.map((act) => (
                     <div
                       key={act.id}
-                      className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-200 transition-colors"
+                      className="p-3 rounded-lg border border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-slate-100/60 transition-colors text-xs"
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="mt-0.5 p-2 rounded-lg bg-slate-100 border border-slate-200 text-emerald-400">
-                          <Activity className="h-4 w-4" />
+                      <div className="flex items-start gap-2.5">
+                        <div className="mt-0.5 p-1.5 rounded bg-teal-50 border border-teal-200 text-teal-700">
+                          <Activity className="h-3.5 w-3.5" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-slate-900">{act.description}</p>
-                          <p className="text-xs text-slate-500 mt-0.5">
+                          <p className="font-bold text-slate-900">{act.description}</p>
+                          <p className="text-[11px] text-slate-500 mt-0.5">
                             By <strong>{act.actor_name}</strong> {act.facility_name ? `• 📍 ${act.facility_name}` : ""}
                           </p>
                         </div>
                       </div>
-                      <div className="text-xs text-slate-500 sm:text-right font-mono">
+                      <div className="text-[11px] text-slate-500 sm:text-right font-mono">
                         {new Date(act.timestamp).toLocaleString()}
                       </div>
                     </div>
@@ -648,6 +643,54 @@ export default function Dashboard() {
               </div>
             </div>
           )}
+
+          {/* Operational Quick Actions Footer Bar */}
+          <section className="mt-8 rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+              Operational Actions & Modules
+            </h4>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <Link
+                href="/redistribution"
+                className="flex items-center gap-2.5 p-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-teal-50 hover:border-teal-200 text-slate-800 hover:text-teal-900 font-bold transition-all"
+              >
+                <div className="p-1.5 rounded bg-teal-100 text-teal-800">
+                  <Activity className="h-4 w-4" />
+                </div>
+                <span>AI Stock Redistribution</span>
+              </Link>
+
+              <Link
+                href="/voice-reporting"
+                className="flex items-center gap-2.5 p-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-teal-50 hover:border-teal-200 text-slate-800 hover:text-teal-900 font-bold transition-all"
+              >
+                <div className="p-1.5 rounded bg-blue-100 text-blue-800">
+                  <Mic className="h-4 w-4" />
+                </div>
+                <span>Voice Inventory Report</span>
+              </Link>
+
+              <Link
+                href="/register-digitisation"
+                className="flex items-center gap-2.5 p-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-teal-50 hover:border-teal-200 text-slate-800 hover:text-teal-900 font-bold transition-all"
+              >
+                <div className="p-1.5 rounded bg-purple-100 text-purple-800">
+                  <ScanLine className="h-4 w-4" />
+                </div>
+                <span>Register Image Scan</span>
+              </Link>
+
+              <Link
+                href="/stress-simulator"
+                className="flex items-center gap-2.5 p-3 rounded-lg border border-slate-200 bg-slate-50 hover:bg-teal-50 hover:border-teal-200 text-slate-800 hover:text-teal-900 font-bold transition-all"
+              >
+                <div className="p-1.5 rounded bg-amber-100 text-amber-800">
+                  <TrendingDown className="h-4 w-4" />
+                </div>
+                <span>Supply Stress Test</span>
+              </Link>
+            </div>
+          </section>
         </div>
       </main>
     </>
