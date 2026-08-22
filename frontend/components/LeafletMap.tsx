@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { MapContainer, TileLayer, CircleMarker, Polyline, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import { FacilityMarker, TransferRoute } from "../app/map/page";
+import { FacilityMarker, TransferRoute } from "../app/(dashboard)/map/page";
 
 interface LeafletMapProps {
   markers: FacilityMarker[];
