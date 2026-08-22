@@ -334,7 +334,7 @@ export default function StressSimulatorPage() {
  style={{
  width: `${Math.max(0, 100 - (c.simulated_stock / (c.baseline_stock || 1)) * 100)}%`,
  }}
- className="bg-slate-700/60 h-full"
+ className="bg-slate-200 h-full"
  />
  </div>
  </div>

@@ -201,7 +201,7 @@ export default function ExpiryRescuePage() {
  <button
  onClick={fetchExpiryData}
  disabled={refreshing}
- className="inline-flex items-center gap-2 rounded-lg bg-slate-100 hover:bg-slate-700 border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition-colors self-start md:self-auto shadow-xs"
+ className="inline-flex items-center gap-2 rounded-lg bg-slate-100 hover:bg-slate-100 border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition-colors self-start md:self-auto shadow-xs"
  >
  <RefreshCw className={`h-4 w-4 text-amber-600 ${refreshing ? "animate-spin" : ""}`} />
  {refreshing ? "Scanning..." : "Rescan Batch Expiries"}
@@ -267,13 +267,13 @@ export default function ExpiryRescuePage() {
  onClick={() => setActiveTab("opportunities")}
  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
  activeTab === "opportunities"
- ? "bg-purple-500/20 text-purple-600 border border-purple-500/40 shadow-xs"
+ ? "bg-teal-600 text-white font-bold shadow-2xs shadow-xs"
  : "text-slate-500 hover:text-slate-700 hover:bg-white border border-transparent"
  }`}
  >
  <Sparkles className={`h-4 w-4 ${activeTab === "opportunities" ? "text-purple-600" : "text-slate-500"}`} />
  <span>Expiry Rescue Candidates</span>
- <span className={`text-xs px-2 py-0.5 rounded-full ${activeTab === "opportunities" ? "bg-purple-500/30 text-purple-200" : "bg-slate-100 text-slate-500"}`}>
+ <span className={`text-xs px-2 py-0.5 rounded-full ${activeTab === "opportunities" ? "bg-teal-800 text-teal-100 font-bold" : "bg-slate-100 text-slate-500"}`}>
  {data?.rescue_opportunities.length ?? 0}
  </span>
  </button>
@@ -282,13 +282,13 @@ export default function ExpiryRescuePage() {
  onClick={() => setActiveTab("all_batches")}
  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
  activeTab === "all_batches"
- ? "bg-amber-500/20 text-amber-600 border border-amber-500/40 shadow-xs"
+ ? "bg-teal-600 text-white font-bold shadow-2xs shadow-xs"
  : "text-slate-500 hover:text-slate-700 hover:bg-white border border-transparent"
  }`}
  >
  <Clock className={`h-4 w-4 ${activeTab === "all_batches" ? "text-amber-600" : "text-slate-500"}`} />
  <span>All Batch Expiry Audit</span>
- <span className={`text-xs px-2 py-0.5 rounded-full ${activeTab === "all_batches" ? "bg-amber-500/30 text-amber-200" : "bg-slate-100 text-slate-500"}`}>
+ <span className={`text-xs px-2 py-0.5 rounded-full ${activeTab === "all_batches" ? "bg-teal-800 text-teal-100 font-bold" : "bg-slate-100 text-slate-500"}`}>
  {data?.batch_risks.length ?? 0}
  </span>
  </button>
@@ -316,7 +316,7 @@ export default function ExpiryRescuePage() {
  onClick={() => setPriorityFilter(prio)}
  className={`px-2.5 py-1 rounded-md font-semibold transition-colors ${
  priorityFilter === prio
- ? "bg-purple-600 text-slate-900"
+ ? "bg-teal-600 text-white font-bold"
  : "text-slate-500 hover:text-slate-700"
  }`}
  >
@@ -332,7 +332,7 @@ export default function ExpiryRescuePage() {
  onClick={() => setUrgencyFilter(urg)}
  className={`px-2.5 py-1 rounded-md font-semibold transition-colors ${
  urgencyFilter === urg
- ? "bg-amber-600 text-slate-900"
+ ? "bg-teal-600 text-white font-bold"
  : "text-slate-500 hover:text-slate-700"
  }`}
  >

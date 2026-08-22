@@ -503,7 +503,7 @@ export default function ForecastsPage() {
  onClick={() => setHorizonDays(days)}
  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
  horizonDays === days
- ? "bg-cyan-500 text-slate-950 shadow-xs"
+ ? "bg-teal-600 text-white font-bold shadow-xs"
  : "text-slate-500 hover:text-slate-700"
  }`}
  >

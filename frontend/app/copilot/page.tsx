@@ -153,7 +153,7 @@ export default function CopilotPage() {
  className={`flex gap-3 ${m.sender === "user" ? "justify-end" : "justify-start"}`}
  >
  {m.sender === "copilot" && (
- <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-purple-600 text-slate-900 shadow-xs">
+ <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white font-bold shadow-xs">
  <Bot className="h-4 w-4" />
  </div>
  )}
@@ -161,7 +161,7 @@ export default function CopilotPage() {
  <div
  className={`max-w-xl rounded-2xl p-4 text-sm leading-relaxed ${
  m.sender === "user"
- ? "bg-emerald-600 text-slate-900 font-medium"
+ ? "bg-teal-600 text-white font-bold font-medium"
  : "bg-slate-100 text-slate-700 border border-slate-200"
  }`}
  >
@@ -225,7 +225,7 @@ export default function CopilotPage() {
 
  {loading && (
  <div className="flex items-center gap-3 text-slate-500 text-sm">
- <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-purple-600 text-slate-900 animate-pulse">
+ <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white font-bold animate-pulse">
  <Bot className="h-4 w-4" />
  </div>
  <div className="bg-slate-100 px-4 py-2.5 rounded-2xl border border-slate-200 flex items-center gap-2">

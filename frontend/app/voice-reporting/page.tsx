@@ -200,7 +200,7 @@ export default function VoiceReportingPage() {
  onClick={handleSimulateRecording}
  className={`px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-lg ${
  isRecording
- ? "bg-rose-600 text-slate-900 animate-pulse shadow-rose-950"
+ ? "bg-teal-600 text-white font-bold animate-pulse shadow-rose-950"
  : "bg-emerald-600 hover:bg-emerald-700 text-slate-900 shadow-emerald-950"
  }`}
  >

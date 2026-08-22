@@ -128,7 +128,7 @@ export default function GeoMapPage() {
  <button
  onClick={fetchMap}
  disabled={loading}
- className="px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-700 text-slate-600 text-sm font-bold flex items-center gap-2 transition-all"
+ className="px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-100 text-slate-600 text-sm font-bold flex items-center gap-2 transition-all"
  >
  <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
  Refresh

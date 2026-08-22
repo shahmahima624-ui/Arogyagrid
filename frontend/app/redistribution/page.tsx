@@ -253,7 +253,7 @@ function RecommendationCard({
 
  <button
  onClick={() => setExpanded(!expanded)}
- className="p-1.5 rounded-lg hover:bg-slate-700 transition-colors text-slate-500"
+ className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-slate-500"
  >
  {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
  </button>
@@ -473,7 +473,7 @@ export default function RedistributionPage() {
  key={s}
  onClick={() => setStatusFilter(s)}
  className={`px-2.5 py-1 rounded-md font-semibold whitespace-nowrap transition-colors ${
- statusFilter === s ? "bg-emerald-600 text-slate-900" : "text-slate-500 hover:text-slate-700"
+ statusFilter === s ? "bg-teal-600 text-white font-bold" : "text-slate-500 hover:text-slate-700"
  }`}
  >
  {s === "ALL" ? "All Statuses" : s}

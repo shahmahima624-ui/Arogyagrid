@@ -192,7 +192,7 @@ export default function ReportsPage() {
  {manifest && (
  <button
  onClick={() => window.print()}
- className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-700 border border-slate-200 text-slate-700 font-bold text-xs transition-all flex items-center gap-1.5"
+ className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs transition-all flex items-center gap-1.5"
  >
  <Printer className="h-4 w-4" />
  Print Manifest PDF

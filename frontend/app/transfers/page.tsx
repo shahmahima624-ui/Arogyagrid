@@ -79,7 +79,7 @@ function StatusStepper({ status }: { status: TransferStatus }) {
  <div
  className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border transition-all ${
  isCurrent
- ? "bg-emerald-600 text-slate-900 font-bold border-emerald-500 shadow-xs"
+ ? "bg-teal-600 text-white font-bold font-bold border-emerald-500 shadow-xs"
  : isDone
  ? "bg-white text-emerald-600 border-slate-200 font-medium"
  : "bg-white text-slate-500 border-slate-200"
@@ -185,7 +185,7 @@ export default function StockTransfersPage() {
  <button
  onClick={fetchTransfers}
  disabled={loading}
- className="inline-flex items-center gap-2 rounded-lg bg-slate-100 hover:bg-slate-700 border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition-colors self-start md:self-auto shadow-xs"
+ className="inline-flex items-center gap-2 rounded-lg bg-slate-100 hover:bg-slate-100 border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-700 transition-colors self-start md:self-auto shadow-xs"
  >
  <RefreshCw className={`h-4 w-4 text-emerald-600 ${loading ? "animate-spin" : ""}`} />
  Refresh Transfers
@@ -249,7 +249,7 @@ export default function StockTransfersPage() {
  key={s}
  onClick={() => setStatusFilter(s)}
  className={`px-2.5 py-1 rounded-md font-semibold whitespace-nowrap transition-colors ${
- statusFilter === s ? "bg-emerald-600 text-slate-900" : "text-slate-500 hover:text-slate-700"
+ statusFilter === s ? "bg-teal-600 text-white font-bold" : "text-slate-500 hover:text-slate-700"
  }`}
  >
  {s === "ALL" ? "All Transfers" : s.replace("_", " ")}
@@ -371,7 +371,7 @@ export default function StockTransfersPage() {
  <button
  onClick={() => handleAction(t.id, "cancel")}
  disabled={!!actionLoading}
- className="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-700 text-xs font-semibold text-slate-500 transition-all"
+ className="px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-100 text-xs font-semibold text-slate-500 transition-all"
  >
  Cancel
  </button>
