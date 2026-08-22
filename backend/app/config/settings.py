@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -9,10 +9,10 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=(".env", "../.env"), extra="ignore")
 
-
     app_name: str = "AarogyaGrid API"
+    environment: str = Field(default="development", validation_alias="ENVIRONMENT")
     database_url: str = Field(
-        default="postgresql://postgres:postgres@localhost:5432/aarogyagrid",
+        default="sqlite:///aarogyagrid.db",
         validation_alias="DATABASE_URL",
     )
     supabase_db_url: str | None = Field(default=None, validation_alias="SUPABASE_DATABASE_URL")
@@ -24,17 +24,28 @@ class Settings(BaseSettings):
         default="aarogyagrid-super-secret-key-change-in-production",
         validation_alias="SECRET_KEY",
     )
+    supabase_jwt_secret: str | None = Field(default=None, validation_alias="SUPABASE_JWT_SECRET")
     gemini_api_key: str | None = Field(
         default=None,
         validation_alias="GEMINI_API_KEY",
     )
     cors_origins: str = "http://localhost:3000"
     firebase_project_id: str | None = None
-    mock_auth: bool = True
+    mock_auth: bool = Field(default=True, validation_alias="MOCK_AUTH")
+    allow_backup_restore: bool = Field(default=False, validation_alias="ALLOW_BACKUP_RESTORE")
+
+    @model_validator(mode="after")
+    def validate_production_security(self):
+        if self.environment.lower() == "production":
+            if self.mock_auth:
+                raise ValueError("Security Violation: MOCK_AUTH cannot be enabled when ENVIRONMENT=production")
+            if self.secret_key == "aarogyagrid-super-secret-key-change-in-production":
+                raise ValueError("Security Violation: SECRET_KEY must be changed in production")
+        return self
 
     @property
     def effective_database_url(self) -> str:
-        """Returns a normalized SQLAlchemy-compatible database connection string for Supabase / PostgreSQL."""
+        """Returns a normalized SQLAlchemy-compatible database connection string for Supabase / PostgreSQL / SQLite."""
         url = self.supabase_db_url or self.database_url
         if url.startswith("postgres://"):
             url = url.replace("postgres://", "postgresql+psycopg://", 1)
@@ -50,4 +61,3 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
-

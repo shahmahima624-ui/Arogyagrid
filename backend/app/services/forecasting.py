@@ -155,12 +155,14 @@ def train_and_forecast_item(
         # Predictions on test split
         y_pred = np.maximum(0, model.predict(X_test))
 
+        from sklearn.metrics import r2_score as calc_r2
         mae = float(mean_absolute_error(y_test, y_pred))
         rmse = float(math.sqrt(mean_squared_error(y_test, y_pred)))
         
         # MAPE with division safety
         denom = np.maximum(y_test, 1.0)
         mape = float(np.mean(np.abs(y_test - y_pred) / denom) * 100)
+        r2_score = float(max(0.0, calc_r2(y_test, y_pred)))
 
         # Residual standard error
         residuals = y_test - y_pred
@@ -174,6 +176,7 @@ def train_and_forecast_item(
         mae = round(max(1.0, avg_historical * 0.12), 2)
         rmse = round(max(1.5, avg_historical * 0.18), 2)
         mape = 14.5
+        r2_score = 0.0
         residual_std = max(1.5, avg_historical * 0.15)
 
     # 3. Autoregressive Horizon Forecasting

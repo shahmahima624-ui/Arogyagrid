@@ -14,11 +14,12 @@ from app.models.core import (
     InventoryBatch,
     Medicine,
     StockTransfer,
+    User,
 )
 from app.schemas.backup import BackupSnapshotResponse, RestoreResponse
 
 
-def create_backup_snapshot(db: Session) -> BackupSnapshotResponse:
+def create_backup_snapshot(db: Session, user: User | None = None) -> BackupSnapshotResponse:
     today_iso = datetime.now(timezone.utc)
     snapshot_id = f"BACKUP-{today_iso.strftime('%Y%m%d-%H%M%S')}"
 
@@ -62,7 +63,7 @@ def create_backup_snapshot(db: Session) -> BackupSnapshotResponse:
             "quantity": b.quantity,
             "expiry_date": b.expiry_date.isoformat() if b.expiry_date else None,
         }
-        for b in db.scalars(select(InventoryBatch)).all()
+        for m in db.scalars(select(InventoryBatch)).all() if hasattr(m, "id") # fallback
     ]
 
     snapshot_json = {
@@ -81,6 +82,16 @@ def create_backup_snapshot(db: Session) -> BackupSnapshotResponse:
         "inventory_batches": len(batches),
     }
 
+    if user:
+        audit = AuditLog(
+            user_id=user.id,
+            action="BACKUP_CREATED",
+            entity="DatabaseSnapshot",
+            description=f"Created backup snapshot {snapshot_id} ({len(batches)} batches).",
+        )
+        db.add(audit)
+        db.commit()
+
     return BackupSnapshotResponse(
         snapshot_id=snapshot_id,
         created_at=today_iso,
@@ -89,7 +100,7 @@ def create_backup_snapshot(db: Session) -> BackupSnapshotResponse:
     )
 
 
-def restore_backup_snapshot(db: Session, snapshot_json: dict[str, Any]) -> RestoreResponse:
+def restore_backup_snapshot(db: Session, snapshot_json: dict[str, Any], user: User | None = None) -> RestoreResponse:
     districts_data = snapshot_json.get("districts", [])
     facilities_data = snapshot_json.get("facilities", [])
     medicines_data = snapshot_json.get("medicines", [])
@@ -146,6 +157,15 @@ def restore_backup_snapshot(db: Session, snapshot_json: dict[str, Any]) -> Resto
                 expiry_date=date.fromisoformat(b["expiry_date"]) if b.get("expiry_date") else date.today(),
             ))
 
+    if user:
+        audit = AuditLog(
+            user_id=user.id,
+            action="BACKUP_RESTORED",
+            entity="DatabaseSnapshot",
+            description=f"Restored database snapshot ({len(batches_data)} batches).",
+        )
+        db.add(audit)
+
     db.commit()
 
     tables_restored = {
@@ -159,5 +179,5 @@ def restore_backup_snapshot(db: Session, snapshot_json: dict[str, Any]) -> Resto
         success=True,
         restored_at=datetime.now(timezone.utc),
         tables_restored=tables_restored,
-        message=f"Successfully restored database snapshot.",
+        message="Successfully restored database snapshot.",
     )

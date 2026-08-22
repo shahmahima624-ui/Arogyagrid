@@ -1,11 +1,11 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, require_role
 from app.db.session import get_db
-from app.models.core import Facility, Medicine, RedistributionRecommendation, User, UserRole
+from app.models.core import Facility, Medicine, RedistributionRecommendation, User, UserRole, Warehouse
 from app.schemas.redistribution import (
     GenerateRedistributionRequest,
     GenerateRedistributionResponse,
@@ -27,7 +27,6 @@ def _to_out(rec: RedistributionRecommendation, db: Session) -> RedistributionRec
     med = db.get(Medicine, rec.medicine_id)
 
     src_fac = db.get(Facility, rec.source_facility_id) if rec.source_facility_id else None
-    from app.models.core import Warehouse
     src_wh = db.get(Warehouse, rec.source_warehouse_id) if rec.source_warehouse_id else None
 
     breakdown = ScoreBreakdown(
@@ -71,26 +70,21 @@ def _to_out(rec: RedistributionRecommendation, db: Session) -> RedistributionRec
 def generate_recommendations(
     body: GenerateRedistributionRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN, UserRole.WAREHOUSE_MANAGER])),
 ):
     """
     Runs the Redistribution Engine against current stockout risks and surplus inventory.
     Persists ranked recommendations for human review.
     Only DISTRICT_ADMIN and WAREHOUSE_MANAGER may trigger generation.
     """
-    if current_user.role not in [UserRole.DISTRICT_ADMIN, UserRole.WAREHOUSE_MANAGER]:
-        from fastapi import HTTPException
-        raise HTTPException(status_code=403, detail="Only district admins or warehouse managers can generate recommendations.")
-
     effective_district = body.district_id
-    effective_facility = body.facility_id
-    if current_user.role == UserRole.FACILITY_ADMIN:
-        effective_facility = current_user.facility_id
+    if current_user.district_id:
+        effective_district = current_user.district_id
 
     created, scenarios = generate_redistribution_recommendations(
         db=db,
         district_id=effective_district,
-        facility_id=effective_facility,
+        facility_id=body.facility_id,
         top_n=body.top_n_per_shortage,
     )
 
@@ -114,7 +108,7 @@ def get_recommendations(
 ):
     """Returns all redistribution recommendations, ordered by score descending."""
     effective_facility = facility_id
-    if current_user.role in [UserRole.FACILITY_ADMIN, UserRole.HEALTHCARE_STAFF]:
+    if current_user.role in [UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value]:
         effective_facility = current_user.facility_id
 
     recs = list_recommendations(db, facility_id=effective_facility, status=status)
@@ -127,9 +121,16 @@ def get_recommendation(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Returns a single redistribution recommendation by ID."""
-    from fastapi import HTTPException
+    """Returns a single redistribution recommendation by ID with strict scope enforcement."""
     rec = get_recommendation_by_id(db, recommendation_id)
     if not rec:
-        raise HTTPException(status_code=404, detail="Recommendation not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Recommendation not found.")
+
+    if current_user.role in [UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value]:
+        if current_user.facility_id not in (rec.destination_facility_id, rec.source_facility_id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: Recommendation does not involve your assigned facility",
+            )
+
     return _to_out(rec, db)

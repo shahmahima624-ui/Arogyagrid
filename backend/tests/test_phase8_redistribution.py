@@ -113,9 +113,9 @@ def test_redistribution_engine_demo_scenario():
 
     client = TestClient(app)
 
-    # 1. No-token request returns 200 (open-access mode)
+    # 1. No-token request returns 401 Unauthorized
     res = client.post("/api/redistribution/generate", json={})
-    assert res.status_code in (200, 201, 422)  # open-access: no 401
+    assert res.status_code == 401
 
     # 2. Generate recommendations
     res = client.post(

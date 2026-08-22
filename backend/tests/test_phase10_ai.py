@@ -85,9 +85,9 @@ def test_gemini_ai_explanation_and_copilot():
     client = TestClient(app)
     headers = {"Authorization": "Bearer mock-admin-ai"}
 
-    # 1. No-token request returns 200 (open-access mode)
+    # 1. No-token request returns 401 Unauthorized
     res = client.post(f"/api/ai/explain-redistribution/{rec.id}")
-    assert res.status_code in (200, 201, 422)  # open-access: no 401
+    assert res.status_code == 401
 
     # 2. Authenticated AI explanation request
     res_exp = client.post(f"/api/ai/explain-redistribution/{rec.id}", headers=headers)

@@ -117,9 +117,9 @@ def test_stockout_risk_engine_and_scoping():
 
     client = TestClient(app)
 
-    # 1. No-token request returns 200 (open-access mode)
+    # 1. No-token request returns 401 Unauthorized
     res = client.get("/api/risks")
-    assert res.status_code in (200, 201, 422)  # open-access: no 401
+    assert res.status_code == 401
 
     # 2. District Admin gets risk assessment
     res = client.get(

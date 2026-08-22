@@ -69,9 +69,9 @@ def test_rbac_and_resource_scoping():
 
     client = TestClient(app)
 
-    # TEST 1: Open-access mode — no token returns 200 (all permissions by default)
+    # TEST 1: Strict auth mode — no token returns 401 Unauthorized
     res = client.get("/api/districts")
-    assert res.status_code == 200, f"Expected 200 open-access, got {res.status_code}: {res.text}"
+    assert res.status_code == 401
 
     # TEST 2: Valid mock token also returns 200
     res = client.get("/api/districts", headers={"Authorization": "Bearer mock-district-admin"})

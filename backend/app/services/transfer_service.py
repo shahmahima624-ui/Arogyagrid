@@ -1,8 +1,7 @@
 import uuid
 from datetime import date, datetime, timedelta, timezone
 
-
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -21,9 +20,8 @@ from app.models.core import (
 
 
 def _generate_tracking_number(db: Session) -> str:
-    """Generates sequential tracking number e.g. TRF-20260822-0042."""
-    datestr = datetime.now(timezone.utc).strftime("%Y%m%m")
-    count = db.scalar(select(StockTransfer).execution_options(populate_existing=True))
+    """Generates sequential tracking number e.g. TRF-20260822-ABCDEF."""
+    datestr = datetime.now(timezone.utc).strftime("%Y%m%d")
     unique_suffix = str(uuid.uuid4().hex[:6]).upper()
     return f"TRF-{datestr}-{unique_suffix}"
 
@@ -36,10 +34,10 @@ def create_transfer_from_recommendation(
 ) -> StockTransfer:
     rec = db.get(RedistributionRecommendation, recommendation_id)
     if not rec:
-        raise HTTPException(status_code=404, detail="Redistribution recommendation not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Redistribution recommendation not found.")
 
     if rec.status in [RecommendationStatus.APPROVED, RecommendationStatus.REJECTED]:
-        raise HTTPException(status_code=400, detail=f"Recommendation is already in {rec.status} state.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Recommendation is already in {rec.status} state.")
 
     tracking_num = _generate_tracking_number(db)
     transfer = StockTransfer(
@@ -72,10 +70,34 @@ def create_manual_transfer(
     user: User,
     notes: str | None = None,
 ) -> StockTransfer:
+    if quantity <= 0:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Transfer quantity must be greater than zero.")
     if not source_facility_id and not source_warehouse_id:
-        raise HTTPException(status_code=400, detail="Must specify either source_facility_id or source_warehouse_id.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Must specify either source_facility_id or source_warehouse_id.")
+    if source_facility_id and source_warehouse_id:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot specify both source_facility_id and source_warehouse_id.")
     if source_facility_id and source_facility_id == destination_facility_id:
-        raise HTTPException(status_code=400, detail="Source and destination facility cannot be the same.")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Source and destination facility cannot be the same.")
+
+    # Validate source stock
+    today = date.today()
+    query = select(InventoryBatch).where(
+        InventoryBatch.medicine_id == medicine_id,
+        InventoryBatch.quantity > 0,
+        InventoryBatch.expiry_date >= today,
+    )
+    if source_facility_id:
+        query = query.where(InventoryBatch.facility_id == source_facility_id)
+    else:
+        query = query.where(InventoryBatch.warehouse_id == source_warehouse_id)
+    
+    batches = db.scalars(query).all()
+    available = sum(b.quantity for b in batches)
+    if available < quantity:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Insufficient source stock ({available} available, {quantity} requested)."
+        )
 
     tracking_num = _generate_tracking_number(db)
     transfer = StockTransfer(
@@ -98,10 +120,10 @@ def create_manual_transfer(
 def approve_transfer(db: Session, transfer_id: uuid.UUID, user: User, notes: str | None = None) -> StockTransfer:
     transfer = db.get(StockTransfer, transfer_id)
     if not transfer:
-        raise HTTPException(status_code=404, detail="Stock transfer not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock transfer not found.")
 
     if transfer.status != TransferStatus.PENDING:
-        raise HTTPException(status_code=400, detail=f"Cannot approve transfer in '{transfer.status}' status.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Cannot approve transfer in '{transfer.status}' status. Must be PENDING.")
 
     transfer.status = TransferStatus.APPROVED
     transfer.approved_by_user_id = user.id
@@ -121,10 +143,30 @@ def approve_transfer(db: Session, transfer_id: uuid.UUID, user: User, notes: str
 def dispatch_transfer(db: Session, transfer_id: uuid.UUID, user: User, notes: str | None = None) -> StockTransfer:
     transfer = db.get(StockTransfer, transfer_id)
     if not transfer:
-        raise HTTPException(status_code=404, detail="Stock transfer not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock transfer not found.")
 
     if transfer.status not in [TransferStatus.PENDING, TransferStatus.APPROVED]:
-        raise HTTPException(status_code=400, detail=f"Cannot dispatch transfer in '{transfer.status}' status.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Cannot dispatch transfer in '{transfer.status}' status.")
+
+    # Revalidate source safety stock before dispatch
+    today = date.today()
+    query = select(InventoryBatch).where(
+        InventoryBatch.medicine_id == transfer.medicine_id,
+        InventoryBatch.quantity > 0,
+        InventoryBatch.expiry_date >= today,
+    )
+    if transfer.source_facility_id:
+        query = query.where(InventoryBatch.facility_id == transfer.source_facility_id)
+    else:
+        query = query.where(InventoryBatch.warehouse_id == transfer.source_warehouse_id)
+
+    batches = db.scalars(query).all()
+    avail = sum(b.quantity for b in batches)
+    if avail < transfer.quantity:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Transfer no longer safe: source inventory balance has changed ({avail} available, {transfer.quantity} required). Please regenerate recommendation."
+        )
 
     transfer.status = TransferStatus.IN_TRANSIT
     transfer.dispatched_at = datetime.now(timezone.utc)
@@ -139,19 +181,19 @@ def dispatch_transfer(db: Session, transfer_id: uuid.UUID, user: User, notes: st
 def receive_transfer(db: Session, transfer_id: uuid.UUID, user: User, notes: str | None = None) -> StockTransfer:
     """
     Executes actual inventory reconciliation in a strict DB transaction.
-    Rejects duplicate receive requests.
+    Rejects duplicate receive requests with 409 Conflict.
     Deducts stock from source (FEFO) and adds stock to destination.
     Creates audit records.
     """
     transfer = db.get(StockTransfer, transfer_id)
     if not transfer:
-        raise HTTPException(status_code=404, detail="Stock transfer not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock transfer not found.")
 
     if transfer.status == TransferStatus.RECEIVED:
-        raise HTTPException(status_code=400, detail="Transfer has already been received and inventory reconciled.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Transfer has already been received and inventory reconciled.")
 
     if transfer.status not in [TransferStatus.IN_TRANSIT, TransferStatus.APPROVED]:
-        raise HTTPException(status_code=400, detail=f"Cannot receive transfer in '{transfer.status}' status.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Cannot receive transfer in '{transfer.status}' status. Transfer must be IN_TRANSIT.")
 
     today = date.today()
     remaining_qty_to_deduct = transfer.quantity
@@ -173,7 +215,7 @@ def receive_transfer(db: Session, transfer_id: uuid.UUID, user: User, notes: str
     total_avail = sum(b.quantity for b in source_batches)
     if total_avail < transfer.quantity:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_409_CONFLICT,
             detail=f"Insufficient source inventory available ({total_avail} units available, {transfer.quantity} requested).",
         )
 
@@ -237,10 +279,10 @@ def receive_transfer(db: Session, transfer_id: uuid.UUID, user: User, notes: str
 def reject_transfer(db: Session, transfer_id: uuid.UUID, user: User, notes: str | None = None) -> StockTransfer:
     transfer = db.get(StockTransfer, transfer_id)
     if not transfer:
-        raise HTTPException(status_code=404, detail="Stock transfer not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock transfer not found.")
 
     if transfer.status in [TransferStatus.RECEIVED, TransferStatus.CANCELLED]:
-        raise HTTPException(status_code=400, detail=f"Cannot reject transfer in '{transfer.status}' status.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Cannot reject transfer in '{transfer.status}' status.")
 
     transfer.status = TransferStatus.REJECTED
     if notes:
@@ -259,10 +301,10 @@ def reject_transfer(db: Session, transfer_id: uuid.UUID, user: User, notes: str 
 def cancel_transfer(db: Session, transfer_id: uuid.UUID, user: User, notes: str | None = None) -> StockTransfer:
     transfer = db.get(StockTransfer, transfer_id)
     if not transfer:
-        raise HTTPException(status_code=404, detail="Stock transfer not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock transfer not found.")
 
     if transfer.status in [TransferStatus.RECEIVED, TransferStatus.REJECTED]:
-        raise HTTPException(status_code=400, detail=f"Cannot cancel transfer in '{transfer.status}' status.")
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Cannot cancel transfer in '{transfer.status}' status.")
 
     transfer.status = TransferStatus.CANCELLED
     if notes:

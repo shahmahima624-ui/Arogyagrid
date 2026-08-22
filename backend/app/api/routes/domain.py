@@ -206,7 +206,7 @@ def add_inventory(
     medicine = require(db, Medicine, payload.medicine_id, "Medicine")
     
     # Enforce scope
-    verify_scope(current_user, payload.facility_id, payload.warehouse_id, db)
+    verify_scope(current_user, facility_id=payload.facility_id, warehouse_id=payload.warehouse_id, db=db)
     
     # Additional validation to ensure warehouse manager uses their warehouse ID
     if current_user.role == UserRole.WAREHOUSE_MANAGER.value:

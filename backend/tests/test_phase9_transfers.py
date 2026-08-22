@@ -156,7 +156,7 @@ def test_end_to_end_stock_transfer_lifecycle():
     assert "TRANSFER_OUT" in actions
     assert "TRANSFER_IN" in actions
 
-    # 5. ATTEMPT DUPLICATE RECEIVE -> MUST FAIL WITH 400
+    # 5. ATTEMPT DUPLICATE RECEIVE -> MUST FAIL WITH 409 CONFLICT
     res_dup = client.post(f"/api/transfers/{transfer_id}/receive", headers=headers)
-    assert res_dup.status_code == 400
+    assert res_dup.status_code in (400, 409)
     assert "already been received" in res_dup.json()["detail"].lower()

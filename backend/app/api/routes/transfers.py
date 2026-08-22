@@ -1,9 +1,9 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, require_role, verify_transfer_scope
 from app.db.session import get_db
 from app.models.core import Facility, Medicine, StockTransfer, User, UserRole, Warehouse
 from app.schemas.transfers import (
@@ -59,7 +59,7 @@ def create_from_recommendation(
     recommendation_id: uuid.UUID,
     body: TransferActionRequest | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN, UserRole.FACILITY_ADMIN, UserRole.WAREHOUSE_MANAGER])),
 ):
     notes = body.notes if body else None
     transfer = transfer_service.create_transfer_from_recommendation(
@@ -72,7 +72,7 @@ def create_from_recommendation(
 def create_manual(
     body: TransferCreateManual,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN, UserRole.FACILITY_ADMIN, UserRole.WAREHOUSE_MANAGER])),
 ):
     transfer = transfer_service.create_manual_transfer(
         db=db,
@@ -96,7 +96,7 @@ def list_all_transfers(
     current_user: User = Depends(get_current_user),
 ):
     effective_facility = facility_id
-    if current_user.role in [UserRole.FACILITY_ADMIN, UserRole.HEALTHCARE_STAFF]:
+    if current_user.role in [UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value]:
         effective_facility = current_user.facility_id
 
     transfers = transfer_service.list_transfers(db, facility_id=effective_facility, status=status)
@@ -111,7 +111,8 @@ def get_transfer_by_id(
 ):
     t = db.get(StockTransfer, transfer_id)
     if not t:
-        raise HTTPException(status_code=404, detail="Stock transfer not found.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock transfer not found.")
+    verify_transfer_scope(current_user, t, db)
     return _to_transfer_out(t, db)
 
 
@@ -120,8 +121,12 @@ def approve(
     transfer_id: uuid.UUID,
     body: TransferActionRequest | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN, UserRole.FACILITY_ADMIN])),
 ):
+    t = db.get(StockTransfer, transfer_id)
+    if not t:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock transfer not found.")
+    verify_transfer_scope(current_user, t, db)
     notes = body.notes if body else None
     t = transfer_service.approve_transfer(db, transfer_id=transfer_id, user=current_user, notes=notes)
     return _to_transfer_out(t, db)
@@ -132,8 +137,12 @@ def dispatch(
     transfer_id: uuid.UUID,
     body: TransferActionRequest | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN, UserRole.FACILITY_ADMIN, UserRole.WAREHOUSE_MANAGER])),
 ):
+    t = db.get(StockTransfer, transfer_id)
+    if not t:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock transfer not found.")
+    verify_transfer_scope(current_user, t, db)
     notes = body.notes if body else None
     t = transfer_service.dispatch_transfer(db, transfer_id=transfer_id, user=current_user, notes=notes)
     return _to_transfer_out(t, db)
@@ -144,8 +153,12 @@ def receive(
     transfer_id: uuid.UUID,
     body: TransferActionRequest | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN, UserRole.FACILITY_ADMIN])),
 ):
+    t = db.get(StockTransfer, transfer_id)
+    if not t:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock transfer not found.")
+    verify_transfer_scope(current_user, t, db)
     notes = body.notes if body else None
     t = transfer_service.receive_transfer(db, transfer_id=transfer_id, user=current_user, notes=notes)
     return _to_transfer_out(t, db)
@@ -156,8 +169,12 @@ def reject(
     transfer_id: uuid.UUID,
     body: TransferActionRequest | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN, UserRole.FACILITY_ADMIN])),
 ):
+    t = db.get(StockTransfer, transfer_id)
+    if not t:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock transfer not found.")
+    verify_transfer_scope(current_user, t, db)
     notes = body.notes if body else None
     t = transfer_service.reject_transfer(db, transfer_id=transfer_id, user=current_user, notes=notes)
     return _to_transfer_out(t, db)
@@ -168,8 +185,12 @@ def cancel(
     transfer_id: uuid.UUID,
     body: TransferActionRequest | None = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN, UserRole.FACILITY_ADMIN])),
 ):
+    t = db.get(StockTransfer, transfer_id)
+    if not t:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stock transfer not found.")
+    verify_transfer_scope(current_user, t, db)
     notes = body.notes if body else None
     t = transfer_service.cancel_transfer(db, transfer_id=transfer_id, user=current_user, notes=notes)
     return _to_transfer_out(t, db)
