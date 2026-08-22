@@ -48,6 +48,9 @@ AarogyaGrid is an end-to-end, production-ready AI supply chain resilience platfo
 17. **Phase 17 — System Health & Telemetry**: Diagnostics endpoint (`GET /api/health/diagnostics`) reporting live database latency, table record counters, and memory usage.
 18. **Phase 18 — Demo Seed Generator**: Automated seed data generator (`POST /api/demo/seed`) populating 5 Gujarat districts, 15 healthcare facilities, essential medicine catalogs, inventory batches, and 30-day consumption history.
 19. **Phase 19 — Database Backup & Restore**: Snapshot JSON export (`POST /api/backup/create`) and full database restoration (`POST /api/backup/restore`).
+20. **Phase 20 — Cold-Chain Telemetry**: Vaccine & insulin cold-chain temperature sensor monitoring (`POST /api/telemetry/log-temperature`) enforcing 2.0°C – 8.0°C range and flagging critical excursions.
+21. **Phase 21 — Real-Time SSE Event Stream**: Server-Sent Events stream (`GET /api/events/stream`) pushing real-time stockout, cold-chain, and transfer alerts to connected web clients.
+
 
 
 

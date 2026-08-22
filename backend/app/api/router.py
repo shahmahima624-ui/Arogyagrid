@@ -18,6 +18,8 @@ from app.api.routes.simulation import router as simulation_router
 from app.api.routes.reports import router as reports_router
 from app.api.routes.seed import router as seed_router
 from app.api.routes.backup import router as backup_router
+from app.api.routes.telemetry import router as telemetry_router
+from app.api.routes.events import router as events_router
 
 api_router = APIRouter(prefix="/api")
 api_router.include_router(health_router, tags=["system"])
@@ -38,6 +40,9 @@ api_router.include_router(simulation_router, prefix="/simulations", tags=["healt
 api_router.include_router(reports_router, prefix="/reports", tags=["government reports and exports"])
 api_router.include_router(seed_router, prefix="/demo", tags=["demo seed data"])
 api_router.include_router(backup_router, prefix="/backup", tags=["database backup and restore"])
+api_router.include_router(telemetry_router, prefix="/telemetry", tags=["cold chain telemetry"])
+api_router.include_router(events_router, prefix="/events", tags=["realtime events sse stream"])
+
 
 
 
