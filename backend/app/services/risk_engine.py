@@ -241,3 +241,98 @@ def evaluate_stockout_risks(
         risks=risk_items,
         as_of=datetime.now(timezone.utc),
     )
+
+
+def compute_risk_for_facility_medicine(
+    db: Session, facility: Facility, medicine: Medicine
+) -> StockoutRiskItem | None:
+    """
+    Lightweight single-pair risk computation used by the redistribution engine.
+    Returns a StockoutRiskItem or None if no data is available.
+    """
+    today = date.today()
+    start_date = today - timedelta(days=90)
+
+    batches = db.scalars(
+        select(InventoryBatch).where(
+            InventoryBatch.facility_id == facility.id,
+            InventoryBatch.medicine_id == medicine.id,
+            InventoryBatch.expiry_date >= today,
+        )
+    ).all()
+    curr_stock = sum(b.quantity for b in batches)
+
+    recs = db.scalars(
+        select(ConsumptionRecord).where(
+            ConsumptionRecord.facility_id == facility.id,
+            ConsumptionRecord.medicine_id == medicine.id,
+            ConsumptionRecord.date >= start_date,
+        )
+    ).all()
+
+    df = extract_time_series(list(recs), start_date, today)
+    series_30 = df["quantity"].tail(30)
+    avg_daily = float(series_30.mean()) if not series_30.empty else 0.0
+    series_7 = df["quantity"].tail(7)
+    recent_7d = float(series_7.mean()) if len(df) >= 7 else avg_daily
+    if recent_7d > 0 and avg_daily > 0:
+        pred_daily = round(0.6 * recent_7d + 0.4 * avg_daily, 1)
+    else:
+        pred_daily = round(avg_daily, 1)
+
+    if pred_daily <= 0.0:
+        days_to_stockout = 0.0 if curr_stock == 0 else 999.0
+    else:
+        sim = curr_stock
+        depleted = None
+        for step in range(1, 91):
+            sim -= pred_daily
+            if sim <= 0:
+                prev = sim + pred_daily
+                depleted = (step - 1) + max(0.0, min(1.0, prev / pred_daily))
+                break
+        days_to_stockout = round(depleted, 1) if depleted is not None else round(curr_stock / pred_daily, 1)
+
+    if facility.facility_type == "PHC":
+        lead_time_days, safety_days = 2, 3
+    elif facility.facility_type == "CHC":
+        lead_time_days, safety_days = 3, 5
+    else:
+        lead_time_days, safety_days = 5, 7
+
+    if days_to_stockout < 3.0 or curr_stock == 0:
+        risk_level = RiskTier.CRITICAL
+        action = "Emergency transfer required."
+    elif days_to_stockout < 7.0:
+        risk_level = RiskTier.HIGH_RISK
+        action = "Schedule replenishment within 48 hours."
+    elif days_to_stockout < 14.0:
+        risk_level = RiskTier.AT_RISK
+        action = "Monitor and prepare reorder."
+    else:
+        risk_level = RiskTier.HEALTHY
+        action = "Stock levels adequate."
+
+    conf = min(0.95, max(0.70, round(0.70 + (len(list(recs)) / 90.0) * 0.25, 2)))
+    proj_date = today + timedelta(days=int(days_to_stockout)) if days_to_stockout < 90 else None
+
+    return StockoutRiskItem(
+        facility_id=facility.id,
+        facility_name=facility.name,
+        facility_type=facility.facility_type,
+        district_name="",
+        medicine_id=medicine.id,
+        medicine_name=medicine.name,
+        category=medicine.category,
+        current_usable_stock=curr_stock,
+        predicted_daily_demand=pred_daily,
+        days_to_stockout=days_to_stockout,
+        stockout_time_label=format_time_label(days_to_stockout),
+        projected_stockout_date=proj_date,
+        risk_level=risk_level,
+        safety_stock_required=int(math.ceil(pred_daily * safety_days)),
+        lead_time_days=lead_time_days,
+        confidence_score=conf,
+        recommended_action=action,
+    )
+

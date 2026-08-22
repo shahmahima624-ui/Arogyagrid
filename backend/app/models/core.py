@@ -120,3 +120,48 @@ class AuditLog(Base):
     description: Mapped[str] = mapped_column(String(500), nullable=False)
     timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
+
+class RecommendationStatus(StrEnum):
+    RECOMMENDED = "RECOMMENDED"
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    CANCELLED = "CANCELLED"
+
+
+class RedistributionRecommendation(TimestampedModel, Base):
+    """Stores AI-generated redistribution recommendations for human approval."""
+    __tablename__ = "redistribution_recommendations"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+
+    # Destination (shortage facility)
+    destination_facility_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("facilities.id"), nullable=False)
+    medicine_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("medicines.id"), nullable=False)
+
+    # Source (surplus facility or warehouse)
+    source_facility_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("facilities.id"))
+    source_warehouse_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("warehouses.id"))
+
+    # Transfer details
+    recommended_quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(String(30), default=RecommendationStatus.RECOMMENDED, nullable=False)
+
+    # Scoring metadata (transparent formula breakdown)
+    score: Mapped[float] = mapped_column(nullable=False)
+    urgency_weight: Mapped[float] = mapped_column(nullable=False)
+    surplus_weight: Mapped[float] = mapped_column(nullable=False)
+    expiry_rescue_weight: Mapped[float] = mapped_column(nullable=False)
+    impact_weight: Mapped[float] = mapped_column(nullable=False)
+    distance_penalty: Mapped[float] = mapped_column(nullable=False)
+    source_risk_penalty: Mapped[float] = mapped_column(nullable=False)
+
+    # Context
+    distance_km: Mapped[float | None]
+    destination_days_to_stockout: Mapped[float | None]
+    source_safe_surplus: Mapped[int | None]
+    estimated_coverage_days_restored: Mapped[float | None]
+    reason: Mapped[str] = mapped_column(String(800), nullable=False)
+    confidence: Mapped[float] = mapped_column(nullable=False)  # 0.0 – 1.0
+
+
