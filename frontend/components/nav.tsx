@@ -71,53 +71,53 @@ export function Nav() {
   const badge = user?.role ? roleBadge[user.role] : null;
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-xs">
-      {/* Top Header Bar */}
+    <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-2xs">
+      {/* Top Main Navigation Bar */}
       <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 border-b border-slate-100 py-2.5">
         <div className="flex items-center justify-between gap-4">
-          {/* Brand & Subtitle */}
+          {/* Brand & Platform Identity */}
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-2.5 shrink-0 group">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-700 text-white shadow-xs group-hover:bg-teal-800 transition-colors">
-                <Activity className="h-5 w-5" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-600 text-white shadow-2xs group-hover:bg-teal-700 transition-colors">
+                <Activity className="h-4.5 w-4.5" />
               </div>
-              <div>
+              <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <span className="text-base font-extrabold tracking-tight text-slate-900">
-                    DHOP <span className="text-teal-700 font-semibold text-xs ml-1">· District Health Operations Platform</span>
+                    Aarogya<span className="text-teal-600">Grid</span>
                   </span>
-                  <span className="hidden md:inline-flex text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
-                    AarogyaGrid Edition
+                  <span className="hidden sm:inline-flex text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                    DHOP Operations
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 font-medium hidden sm:block">
-                  National Health Mission Jurisdiction • Real-Time Operations
-                </p>
+                <span className="text-[11px] text-slate-500 font-medium hidden md:inline">
+                  District Health Operations & Medicine Resilience Platform
+                </span>
               </div>
             </Link>
           </div>
 
-          {/* Quick Search & Status Indicators */}
+          {/* Right Status & Account Switcher */}
           <div className="flex items-center gap-3 shrink-0">
-            <div className="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1 text-xs text-slate-600">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>District Jurisdiction: <strong className="text-slate-800">Ahmedabad Central</strong></span>
+            <div className="hidden lg:flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1 text-xs text-slate-600 font-medium">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              <span>Jurisdiction: <strong className="text-slate-800 font-bold">Ahmedabad District</strong></span>
             </div>
 
-            {/* User Profile */}
+            {/* Profile Dropdown */}
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-800 transition-colors"
               >
-                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-100 text-teal-800 font-bold">
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-100 text-teal-800 font-bold text-[11px]">
                   {user?.name ? user.name[0] : "A"}
                 </div>
-                <span className="hidden sm:block truncate max-w-[130px]">
+                <span className="hidden sm:block truncate max-w-[120px]">
                   {user?.name || "District Admin"}
                 </span>
                 {badge && (
-                  <span className={`hidden lg:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${badge.color}`}>
+                  <span className={`hidden md:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${badge.color}`}>
                     {badge.label}
                   </span>
                 )}
@@ -126,7 +126,7 @@ export function Nav() {
 
               {userMenuOpen && (
                 <div className="absolute right-0 mt-1.5 w-64 bg-white rounded-xl border border-slate-200 shadow-xl z-50 overflow-hidden text-xs">
-                  <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/50">
+                  <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/60">
                     <p className="font-bold text-slate-900 truncate">{user?.name}</p>
                     <p className="text-slate-500 truncate">{user?.email}</p>
                     {badge && (
@@ -141,7 +141,7 @@ export function Nav() {
                       onClick={() => setUserMenuOpen(false)}
                       className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-50 font-semibold"
                     >
-                      <User className="h-3.5 w-3.5 text-slate-500" /> Switch Role / Login
+                      <User className="h-3.5 w-3.5 text-slate-400" /> Switch Account / Role
                     </Link>
                     <button
                       onClick={handleSignOut}
@@ -154,7 +154,7 @@ export function Nav() {
               )}
             </div>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Nav Button */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
               className="lg:hidden p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100"
@@ -165,8 +165,8 @@ export function Nav() {
         </div>
       </div>
 
-      {/* Module Navigation Row */}
-      <div className="bg-slate-50/80 px-4 sm:px-6 lg:px-8 border-t border-slate-100">
+      {/* Sub Module Tabs Nav */}
+      <div className="bg-slate-50/50 px-4 sm:px-6 lg:px-8 border-t border-slate-100">
         <div className="mx-auto max-w-screen-2xl">
           <nav className="hidden lg:flex items-center gap-1 overflow-x-auto py-1.5 scrollbar-none">
             {navLinks.map(({ href, label, icon: Icon }) => {
@@ -175,13 +175,13 @@ export function Nav() {
                 <Link
                   key={href}
                   href={href}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold whitespace-nowrap transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
                     active
-                      ? "bg-teal-700 text-white shadow-xs font-bold"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                      ? "bg-teal-600 text-white font-bold shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"
                   }`}
                 >
-                  <Icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-white" : "text-slate-500"}`} />
+                  <Icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-white" : "text-slate-400"}`} />
                   {label}
                 </Link>
               );
@@ -203,7 +203,7 @@ export function Nav() {
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-colors ${
                     active
-                      ? "bg-teal-700 text-white"
+                      ? "bg-teal-600 text-white"
                       : "text-slate-700 hover:bg-slate-100"
                   }`}
                 >
