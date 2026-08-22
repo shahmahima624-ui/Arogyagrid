@@ -21,7 +21,10 @@ class CopilotQueryRequest(BaseModel):
 
 class CopilotQueryResponse(BaseModel):
     answer: str
+    intent_detected: str = "GENERAL_SUMMARY"
+    retrieved_facts: dict = Field(default_factory=dict)
     suggested_actions: list[str]
     data_context_summary: str
     model_used: str
     as_of: datetime
+

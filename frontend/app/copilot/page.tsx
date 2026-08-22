@@ -16,21 +16,27 @@ import {
   Clock,
   ArrowRight,
   MessageSquare,
+  ChevronDown,
+  ChevronUp,
+  Database,
 } from "lucide-react";
 import Link from "next/link";
 
 interface CopilotResponse {
   answer: string;
+  intent_detected?: string;
+  retrieved_facts?: Record<string, any>;
   suggested_actions: string[];
   data_context_summary: string;
   model_used: string;
   as_of: string;
 }
 
-
 interface Message {
   sender: "user" | "copilot";
   text: string;
+  intent_detected?: string;
+  retrieved_facts?: Record<string, any>;
   suggested_actions?: string[];
   model_used?: string;
 }
@@ -39,21 +45,26 @@ export default function CopilotPage() {
   const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showFactsIdx, setShowFactsIdx] = useState<number | null>(null);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       sender: "copilot",
-      text: "Hello! I am AarogyaGrid AI Copilot. Ask me any question regarding stockout risks, excess expiry rescue candidates, or inter-facility medicine redistribution recommendations.",
+      text: "Hello! I am AarogyaGrid AI Copilot. I analyze live database context across inventory, demand forecasts, stockout risks, and FEFO expiry candidates to answer supply chain questions.",
       suggested_actions: [
         "Review CRITICAL stockout risks in Risk Engine (/risks)",
         "Check expiry rescue candidates (/expiry-rescue)",
+        "Approve pending inter-facility transfers (/transfers)",
       ],
     },
   ]);
 
-  const quickQueries = [
-    "What facilities have CRITICAL stockout risk within 3 days?",
-    "How many excess insulin vials can be rescued from PHC Rampura?",
-    "Give me an executive summary of current network resilience.",
+  const masterQueries = [
+    "Which facilities are critical this week?",
+    "Which medicines are likely to expire?",
+    "What transfers should I approve today?",
+    "Can current district surplus solve all ORS shortages?",
+    "Which facility has the highest medicine risk?",
   ];
 
   const handleSend = async (qText?: string) => {
@@ -74,6 +85,8 @@ export default function CopilotPage() {
       const copilotMsg: Message = {
         sender: "copilot",
         text: res.answer,
+        intent_detected: res.intent_detected,
+        retrieved_facts: res.retrieved_facts,
         suggested_actions: res.suggested_actions,
         model_used: res.model_used,
       };
@@ -101,7 +114,7 @@ export default function CopilotPage() {
             <div className="flex items-center gap-2">
               <span className="flex h-2.5 w-2.5 rounded-full bg-purple-400 animate-ping" />
               <p className="text-xs font-bold uppercase tracking-widest text-purple-400">
-                Phase 10 — Generative AI Network Copilot
+                Phase 11 — AI Supply Copilot & Factual Tool Retrieval
               </p>
             </div>
             <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
@@ -112,29 +125,28 @@ export default function CopilotPage() {
         </div>
 
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 pt-8">
-          {/* Quick Query Suggestions */}
+          {/* Master Prompt Example Query Chips */}
           <div className="mb-6 bg-slate-800/40 p-4 rounded-2xl border border-slate-800 backdrop-blur">
             <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <Sparkles className="h-3.5 w-3.5 text-purple-400" />
-              Suggested Network Queries
+              Master Prompt Recommended Queries
             </div>
             <div className="flex flex-wrap gap-2">
-              {quickQueries.map((qq) => (
+              {masterQueries.map((qq) => (
                 <button
                   key={qq}
                   onClick={() => handleSend(qq)}
                   disabled={loading}
-                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-purple-950/80 border border-slate-700 hover:border-purple-600 text-xs font-medium text-slate-300 transition-all text-left"
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-purple-950/80 border border-slate-700 hover:border-purple-600 text-xs font-medium text-slate-200 transition-all text-left"
                 >
                   &quot;{qq}&quot;
                 </button>
-
               ))}
             </div>
           </div>
 
-          {/* Chat Messages Window */}
-          <div className="space-y-4 mb-6 min-h-[400px] max-h-[600px] overflow-y-auto p-4 rounded-2xl border border-slate-800 bg-slate-950/50 backdrop-blur">
+          {/* Chat Messages */}
+          <div className="space-y-4 mb-6 min-h-[420px] max-h-[650px] overflow-y-auto p-4 rounded-2xl border border-slate-800 bg-slate-950/50 backdrop-blur">
             {messages.map((m, idx) => (
               <div
                 key={idx}
@@ -153,8 +165,35 @@ export default function CopilotPage() {
                       : "bg-slate-800 text-slate-200 border border-slate-700"
                   }`}
                 >
+                  {m.intent_detected && (
+                    <div className="mb-2 inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold bg-purple-950 text-purple-300 border border-purple-800">
+                      <Database className="h-3 w-3 text-purple-400" />
+                      Intent: {m.intent_detected}
+                    </div>
+                  )}
+
                   <div className="whitespace-pre-wrap">{m.text}</div>
 
+                  {/* Factual Database Details Drawer */}
+                  {m.retrieved_facts && Object.keys(m.retrieved_facts).length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-slate-700/60">
+                      <button
+                        onClick={() => setShowFactsIdx(showFactsIdx === idx ? null : idx)}
+                        className="text-xs text-purple-300 hover:text-purple-200 font-mono font-bold flex items-center gap-1"
+                      >
+                        {showFactsIdx === idx ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                        {showFactsIdx === idx ? "Hide Retrieved DB Facts" : "View Factual DB Payload"}
+                      </button>
+
+                      {showFactsIdx === idx && (
+                        <pre className="mt-2 p-3 rounded-xl bg-slate-900 border border-slate-700 text-[11px] text-emerald-400 font-mono overflow-x-auto max-h-48">
+                          {JSON.stringify(m.retrieved_facts, null, 2)}
+                        </pre>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Suggested Actions */}
                   {m.suggested_actions && m.suggested_actions.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-slate-700/60 text-xs">
                       <span className="text-slate-400 font-bold block mb-1">Recommended Actions:</span>
@@ -191,13 +230,13 @@ export default function CopilotPage() {
                 </div>
                 <div className="bg-slate-800 px-4 py-2.5 rounded-2xl border border-slate-700 flex items-center gap-2">
                   <RefreshCw className="h-4 w-4 animate-spin text-purple-400" />
-                  Analyzing database context...
+                  Detecting intent & querying database tools...
                 </div>
               </div>
             )}
           </div>
 
-          {/* Input Form */}
+          {/* Form */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -209,7 +248,7 @@ export default function CopilotPage() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ask Copilot a question about medicine supply resilience..."
+              placeholder="Ask Copilot a natural language supply question..."
               className="flex-1 bg-transparent px-4 py-2 text-sm text-white placeholder-slate-400 focus:outline-hidden"
             />
             <button

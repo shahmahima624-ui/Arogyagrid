@@ -169,50 +169,122 @@ def ask_copilot(
     user: User,
     district_id: uuid.UUID | None = None,
 ) -> CopilotQueryResponse:
-    """Answers network resilience questions using real DB facts and Gemini or deterministic fallback."""
-    # Gather live network facts
-    risk_assessment = evaluate_stockout_risks(db, district_id=district_id)
-    expiry_assessment = evaluate_expiry_risks(db, district_id=district_id)
+    """
+    Answers network resilience questions via intent classification and deterministic tool retrieval.
+    Gemini or rule-based fallback synthesises retrieved facts.
+    """
+    from app.services import copilot_tools
 
-    pending_transfers = db.scalars(
-        select(StockTransfer).where(StockTransfer.status == "PENDING")
-    ).all()
+    q_lower = query.lower()
 
-    recs = db.scalars(
-        select(RedistributionRecommendation).where(RedistributionRecommendation.status == "RECOMMENDED")
-    ).all()
+    # Intent Detection & Tool Dispatch
+    if any(k in q_lower for k in ["critical", "this week", "urgent", "immediate"]):
+        facts_dict = copilot_tools.tool_critical_facilities(db, district_id=district_id)
+        intent = "CRITICAL_FACILITIES"
+        actions = [
+            "Review CRITICAL stockouts in Risk Engine (/risks)",
+            "Generate inter-facility redistribution recommendations (/redistribution)",
+        ]
+    elif any(k in q_lower for k in ["expire", "expiry", "wastage", "rescue"]):
+        facts_dict = copilot_tools.tool_expiring_medicines(db, district_id=district_id)
+        intent = "EXPIRING_MEDICINES"
+        actions = [
+            "View candidate batches for FEFO expiry rescue (/expiry-rescue)",
+            "Initiate inter-facility stock transfers (/transfers)",
+        ]
+    elif any(k in q_lower for k in ["transfer", "approve", "pending", "today"]):
+        facts_dict = copilot_tools.tool_pending_transfers(db, district_id=district_id)
+        intent = "PENDING_TRANSFERS"
+        actions = [
+            "Approve pending stock transfers (/transfers)",
+            "Review AI redistribution proposals (/redistribution)",
+        ]
+    elif any(k in q_lower for k in ["highest", "vulnerable", "ranking", "worst", "facility risk", "highest medicine risk"]):
+        facts_dict = copilot_tools.tool_vulnerable_facility_ranking(db, district_id=district_id)
+        intent = "FACILITY_RISK_RANKING"
+        actions = [
+            "Inspect vulnerable facility profile (/facilities)",
+            "Review stockout risk metrics (/risks)",
+        ]
+    elif any(k in q_lower for k in ["ors", "surplus solve", "shortage", "solve all"]):
+        med_query = "ORS" if "ors" in q_lower else "Insulin" if "insulin" in q_lower else "Amoxicillin"
+        facts_dict = copilot_tools.tool_surplus_shortage_match(db, medicine_name_query=med_query, district_id=district_id)
+        intent = "MEDICINE_SURPLUS_SHORTAGE"
+        actions = [
+            "Review medicine stockout forecasts (/forecasts)",
+            "Trigger surplus redistribution (/redistribution)",
+        ]
 
-    kpis_risk = risk_assessment.kpis
-    kpis_exp = expiry_assessment.kpis
+    else:
+        crit_facts = copilot_tools.tool_critical_facilities(db, district_id=district_id)
+        exp_facts = copilot_tools.tool_expiring_medicines(db, district_id=district_id)
+        trf_facts = copilot_tools.tool_pending_transfers(db, district_id=district_id)
+        facts_dict = {
+            "intent": "GENERAL_SUMMARY",
+            "critical_facilities": crit_facts,
+            "expiring_medicines": exp_facts,
+            "transfers": trf_facts,
+        }
+        intent = "GENERAL_SUMMARY"
+        actions = [
+            "Monitor Command Centre dashboard (/dashboard)",
+            "Review Stock-Out risks (/risks)",
+        ]
 
-    summary_text = (
-        f"Network State: {kpis_risk.critical_count} CRITICAL stockouts, "
-        f"{kpis_risk.high_risk_count} HIGH risk items. "
-        f"Expiry risks: {kpis_exp.expiring_soon_count} batches expiring ≤90d ({kpis_exp.total_rescueable_surplus_units} surplus units ready to rescue). "
-        f"Pending transfers: {len(pending_transfers)}. Recommendations ready: {len(recs)}."
-    )
-
-    actions = [
-        "Review CRITICAL stockout risks in Risk Engine (/risks)",
-        "Approve pending inter-facility transfers (/transfers)",
-        "Trigger FEFO expiry rescue redistribution (/expiry-rescue)",
-    ]
+    summary_text = f"Retrieved Database Facts (Intent: {intent}): {json.dumps(facts_dict)[:500]}..."
 
     settings = get_settings()
 
     if not settings.gemini_api_key:
-        answer = (
-            f"AarogyaGrid Copilot Status:\n"
-            f"Based on real-time database monitoring, the network currently has {kpis_risk.critical_count} critical stockout risks "
-            f"and {kpis_exp.total_rescueable_surplus_units} surplus units eligible for expiry rescue. "
-            f"Most vulnerable facility: {kpis_risk.most_vulnerable_facility or 'None'}. "
-            f"Most vulnerable medicine: {kpis_risk.most_vulnerable_medicine or 'None'}."
-        )
+        if intent == "CRITICAL_FACILITIES":
+            answer = (
+                f"AarogyaGrid Database Findings for Critical Facilities:\n"
+                f"• Total Critical Stockouts: {facts_dict.get('total_critical_count', 0)}\n"
+                f"• High Risk Facilities: {facts_dict.get('total_high_risk_count', 0)}\n"
+                f"• Most Vulnerable Node: {facts_dict.get('most_vulnerable_facility', 'None')}\n"
+                f"Top critical items require immediate inter-facility transfers from central supply."
+            )
+        elif intent == "EXPIRING_MEDICINES":
+            answer = (
+                f"AarogyaGrid Database Findings for Expiry Rescue:\n"
+                f"• Batches Expiring ≤90 days: {facts_dict.get('expiring_soon_batch_count', 0)}\n"
+                f"• Total Safe Surplus Available for Rescue: {facts_dict.get('total_rescueable_surplus_units', 0)} units\n"
+                f"• Most Vulnerable Medicine: {facts_dict.get('most_vulnerable_medicine', 'None')}\n"
+                f"High-priority FEFO rescue batches identified in network."
+            )
+        elif intent == "MEDICINE_SURPLUS_SHORTAGE":
+            med = facts_dict.get("medicine_name", "Medicine")
+            can_cover = facts_dict.get("can_district_surplus_solve_shortage", True)
+            answer = (
+                f"AarogyaGrid Surplus-Shortage Match for {med}:\n"
+                f"• Total Shortage Demand: {facts_dict.get('total_shortage_quantity', 0)} units\n"
+                f"• Total Safe Surplus in District: {facts_dict.get('total_surplus_quantity', 0)} units\n"
+                f"• Can Surplus Solve All Shortages? {'YES! District surplus is sufficient.' if can_cover else 'NO. Additional central procurement required.'}"
+            )
+        elif intent == "PENDING_TRANSFERS":
+            answer = (
+                f"AarogyaGrid Pending Transfers Summary:\n"
+                f"• Pending Transfers Awaiting Approval: {facts_dict.get('pending_transfers_count', 0)}\n"
+                f"• Unreviewed AI Redistribution Recommendations: {facts_dict.get('unreviewed_recommendations_count', 0)}\n"
+                f"Please review and approve pending stock transfers."
+            )
+        elif intent == "FACILITY_RISK_RANKING":
+            answer = (
+                f"AarogyaGrid Facility Vulnerability Ranking:\n"
+                f"• Most Vulnerable Facility: {facts_dict.get('most_vulnerable_facility', 'None')}\n"
+                f"• Most Vulnerable Medicine: {facts_dict.get('most_vulnerable_medicine', 'None')}\n"
+                f"Ranked vulnerability list computed from 90-day consumption velocity and stock levels."
+            )
+        else:
+            answer = f"AarogyaGrid Network Summary: System online with database context active."
+
         return CopilotQueryResponse(
             answer=answer,
+            intent_detected=intent,
+            retrieved_facts=facts_dict,
             suggested_actions=actions,
             data_context_summary=summary_text,
-            model_used="deterministic-rules-engine (fallback)",
+            model_used="deterministic-tools-retrieval (fallback)",
             as_of=datetime.now(timezone.utc),
         )
 
@@ -225,11 +297,13 @@ def ask_copilot(
 You are AarogyaGrid Copilot, an AI supply-chain assistant for public healthcare administrators.
 User Question: "{query}"
 
-Real-Time Network Facts:
-{summary_text}
+FACTS RETRIEVED FROM DATABASE (Intent: {intent}):
+{json.dumps(facts_dict, indent=2)}
 
-Provide a concise, direct, helpful answer focusing purely on medicine supply resilience, stockout prevention, and inventory redistribution.
-Do not discuss unrelated medical topics or treatment advice.
+Instructions:
+1. Synthesise the retrieved facts directly to answer the user's question.
+2. Ensure every number and facility name stated corresponds strictly to the retrieved database facts above.
+3. Be concise, direct, and focused on medicine supply-chain resilience.
 """
 
         response = client.models.generate_content(
@@ -241,24 +315,21 @@ Do not discuss unrelated medical topics or treatment advice.
 
         return CopilotQueryResponse(
             answer=answer_text.strip(),
+            intent_detected=intent,
+            retrieved_facts=facts_dict,
             suggested_actions=actions,
             data_context_summary=summary_text,
             model_used="gemini-2.5-flash",
             as_of=datetime.now(timezone.utc),
         )
     except Exception as exc:
-        logger.warning(f"Copilot Gemini call failed ({exc}). Falling back to deterministic answer.")
-        answer = (
-            f"Network Status Summary:\n"
-            f"• Critical Stockouts: {kpis_risk.critical_count}\n"
-            f"• High Risk Facilities: {kpis_risk.high_risk_count}\n"
-            f"• Rescueable Surplus: {kpis_exp.total_rescueable_surplus_units} units\n"
-            f"• Pending Transfers: {len(pending_transfers)}"
-        )
+        logger.warning(f"Copilot Gemini call failed ({exc}). Falling back to deterministic tool response.")
         return CopilotQueryResponse(
-            answer=answer,
+            answer=f"Network Status (Intent: {intent}): Retrieved factual database state cleanly.",
+            intent_detected=intent,
+            retrieved_facts=facts_dict,
             suggested_actions=actions,
             data_context_summary=summary_text,
-            model_used="deterministic-rules-engine (fallback)",
+            model_used="deterministic-tools-retrieval (fallback)",
             as_of=datetime.now(timezone.utc),
         )
