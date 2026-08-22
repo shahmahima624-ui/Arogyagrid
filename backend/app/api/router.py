@@ -16,6 +16,7 @@ from app.api.routes.register import router as register_router
 from app.api.routes.map import router as map_router
 from app.api.routes.simulation import router as simulation_router
 from app.api.routes.reports import router as reports_router
+from app.api.routes.seed import router as seed_router
 
 api_router = APIRouter(prefix="/api")
 api_router.include_router(health_router, tags=["system"])
@@ -34,6 +35,8 @@ api_router.include_router(register_router, prefix="/register", tags=["register d
 api_router.include_router(map_router, prefix="/map", tags=["geographic network map"])
 api_router.include_router(simulation_router, prefix="/simulations", tags=["health supply stress simulator"])
 api_router.include_router(reports_router, prefix="/reports", tags=["government reports and exports"])
+api_router.include_router(seed_router, prefix="/demo", tags=["demo seed data"])
+
 
 
 
