@@ -10,7 +10,8 @@ from app.config.settings import get_settings
 from app.db.base import Base
 
 config = context.config
-config.set_main_option("sqlalchemy.url", get_settings().database_url)
+config.set_main_option("sqlalchemy.url", get_settings().effective_database_url.replace("%", "%%"))
+
 
 
 def run_migrations_online() -> None:

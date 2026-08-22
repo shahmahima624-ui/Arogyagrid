@@ -1,29 +1,11 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-aarogyagrid}
-      POSTGRES_USER: ${POSTGRES_USER:-aarogyagrid}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
   backend:
     build: ./backend
     environment:
-      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-aarogyagrid}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-aarogyagrid}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://postgres:[YOUR-PASSWORD]@db.[YOUR-PROJECT-REF].supabase.co:5432/postgres?sslmode=require}
+      SUPABASE_DATABASE_URL: ${SUPABASE_DATABASE_URL:-}
     ports:
       - "${BACKEND_PORT:-8000}:8000"
-    depends_on:
-      postgres:
-        condition: service_healthy
 
   frontend:
     build: ./frontend
@@ -34,5 +16,3 @@ services:
     depends_on:
       - backend
 
-volumes:
-  postgres_data:

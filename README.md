@@ -56,12 +56,13 @@ The seed creates one Gujarat district, nine facilities, one warehouse, 15 medici
 
 ## Local development
 
-1. Copy `.env.example` to `.env` and replace development secrets as appropriate.
-2. Start PostgreSQL:
+1. Copy `.env.example` to `.env` and set your `SUPABASE_DATABASE_URL` / `DATABASE_URL` credentials:
 
    ```bash
-   docker compose up -d postgres
+   SUPABASE_DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?sslmode=require
    ```
+
+
 
 3. Start the backend from `backend/`:
 
