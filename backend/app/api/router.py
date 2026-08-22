@@ -12,6 +12,7 @@ from app.api.routes.redistribution import router as redistribution_router
 from app.api.routes.transfers import router as transfers_router
 from app.api.routes.ai import router as ai_router
 from app.api.routes.voice import router as voice_router
+from app.api.routes.register import router as register_router
 
 api_router = APIRouter(prefix="/api")
 api_router.include_router(health_router, tags=["system"])
@@ -26,6 +27,8 @@ api_router.include_router(redistribution_router, prefix="/redistribution", tags=
 api_router.include_router(transfers_router, prefix="/transfers", tags=["stock transfers"])
 api_router.include_router(ai_router, prefix="/ai", tags=["gemini ai explanation"])
 api_router.include_router(voice_router, prefix="/voice", tags=["voice reporting"])
+api_router.include_router(register_router, prefix="/register", tags=["register digitisation"])
+
 
 
 
