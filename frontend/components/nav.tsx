@@ -11,6 +11,7 @@ import {
   FileSpreadsheet,
   BarChart3,
   TrendingUp,
+  ShieldAlert,
   LogOut,
   User,
   ShieldCheck,
@@ -28,6 +29,7 @@ export function Nav() {
 
   const navLinks = [
     { href: "/dashboard", label: "Command Centre", icon: LayoutDashboard },
+    { href: "/risks", label: "Risk Engine", icon: ShieldAlert },
     { href: "/forecasts", label: "Forecasts", icon: TrendingUp },
     { href: "/facilities", label: "Facilities", icon: Building2 },
     { href: "/inventory", label: "Inventory", icon: Boxes },
