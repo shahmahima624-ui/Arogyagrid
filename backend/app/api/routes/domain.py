@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.core import ConsumptionRecord, District, Facility, InventoryBatch, Medicine, Warehouse, User, UserRole, AuditLog
 from app.schemas.core import (
+    AuditLogOut,
     ConsumptionCreate,
     ConsumptionOut,
     DistrictCreate,
@@ -18,6 +19,7 @@ from app.schemas.core import (
     InventoryOut,
     MedicineCreate,
     MedicineOut,
+    UserOut,
     WarehouseCreate,
     WarehouseOut,
 )
@@ -303,3 +305,39 @@ def record_consumption(
         record.facility_id
     )
     return record
+
+
+# --- Audit Logs ---
+
+@router.get("/audit-logs", response_model=list[AuditLogOut])
+def list_audit_logs(
+    action: str | None = None,
+    entity: str | None = None,
+    limit: int = Query(default=100, ge=1, le=500),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN]))
+):
+    query = select(AuditLog).order_by(AuditLog.timestamp.desc())
+    if action:
+        query = query.where(AuditLog.action == action)
+    if entity:
+        query = query.where(AuditLog.entity == entity)
+    return db.scalars(query.limit(limit)).all()
+
+
+# --- Users List ---
+
+@router.get("/users", response_model=list[UserOut])
+def list_users(
+    district_id: uuid.UUID | None = None,
+    role: str | None = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN]))
+):
+    query = select(User).order_by(User.name)
+    if district_id:
+        query = query.where(User.district_id == district_id)
+    if role:
+        query = query.where(User.role == role)
+    return db.scalars(query).all()
+
