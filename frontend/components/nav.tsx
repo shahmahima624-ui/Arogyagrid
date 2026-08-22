@@ -44,6 +44,8 @@ export function Nav() {
     { href: "/voice-reporting", label: "Voice Reporting", icon: Mic },
     { href: "/register-digitisation", label: "Register Scan", icon: ScanLine },
     { href: "/map", label: "Geo Network", icon: MapPin },
+    { href: "/stress-simulator", label: "Simulator", icon: Activity },
+
     { href: "/forecasts", label: "Forecasts", icon: TrendingUp },
     { href: "/facilities", label: "Facilities", icon: Building2 },
     { href: "/inventory", label: "Inventory", icon: Boxes },
