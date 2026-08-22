@@ -164,7 +164,7 @@ export default function StressSimulatorPage() {
               <div className="flex items-center gap-2">
                 <span className="flex h-2.5 w-2.5 rounded-full bg-rose-400 animate-ping" />
                 <p className="text-xs font-bold uppercase tracking-widest text-rose-400">
-                  Phase 15 — Health Supply Stress Simulator
+                  Health Supply Stress & Surge Simulator
                 </p>
               </div>
               <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">

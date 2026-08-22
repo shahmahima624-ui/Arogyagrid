@@ -364,7 +364,7 @@ export default function ForecastsPage() {
               <div className="flex items-center gap-2">
                 <span className="flex h-2.5 w-2.5 rounded-full bg-cyan-400 animate-pulse" />
                 <p className="text-xs font-bold uppercase tracking-widest text-cyan-400">
-                  Predictive Intelligence Engine (Phase 5)
+                  Predictive Demand Intelligence Engine
                 </p>
                 <span className="text-slate-500">•</span>
                 <span className="text-xs text-slate-500">

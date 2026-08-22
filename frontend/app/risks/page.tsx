@@ -171,7 +171,7 @@ export default function RisksPage() {
               <div className="flex items-center gap-2">
                 <span className="flex h-2.5 w-2.5 rounded-full bg-rose-500 animate-ping" />
                 <p className="text-xs font-bold uppercase tracking-widest text-rose-400">
-                  Phase 6 — Actionable Stock-Out Intelligence
+                  Stockout Risk Engine & Early Warning
                 </p>
                 <span className="text-slate-500">•</span>
                 <span className="text-xs text-slate-500">

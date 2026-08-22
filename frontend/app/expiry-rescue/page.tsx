@@ -185,7 +185,7 @@ export default function ExpiryRescuePage() {
               <div className="flex items-center gap-2">
                 <span className="flex h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping" />
                 <p className="text-xs font-bold uppercase tracking-widest text-amber-400">
-                  Phase 7 — Wastage Prevention & FEFO Optimization
+                  Expiry Rescue Engine & FEFO Optimization
                 </p>
                 <span className="text-slate-500">•</span>
                 <span className="text-xs text-slate-500">

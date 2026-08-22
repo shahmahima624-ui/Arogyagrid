@@ -171,7 +171,7 @@ export default function StockTransfersPage() {
               <div className="flex items-center gap-2">
                 <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
                 <p className="text-xs font-bold uppercase tracking-widest text-emerald-400">
-                  Phase 9 — Human Approval & Inventory Reconciliation
+                  Human Approval & Stock Transfer Lifecycle
                 </p>
                 <span className="text-slate-500">•</span>
                 <span className="text-xs text-slate-500">Real-time Batch Reconciliation</span>
