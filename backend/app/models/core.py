@@ -129,6 +129,15 @@ class RecommendationStatus(StrEnum):
     CANCELLED = "CANCELLED"
 
 
+class TransferStatus(StrEnum):
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    IN_TRANSIT = "IN_TRANSIT"
+    RECEIVED = "RECEIVED"
+    CANCELLED = "CANCELLED"
+
+
 class RedistributionRecommendation(TimestampedModel, Base):
     """Stores AI-generated redistribution recommendations for human approval."""
     __tablename__ = "redistribution_recommendations"
@@ -163,5 +172,33 @@ class RedistributionRecommendation(TimestampedModel, Base):
     estimated_coverage_days_restored: Mapped[float | None]
     reason: Mapped[str] = mapped_column(String(800), nullable=False)
     confidence: Mapped[float] = mapped_column(nullable=False)  # 0.0 – 1.0
+
+
+class StockTransfer(TimestampedModel, Base):
+    """Executes human-approved inventory transfers between facilities/warehouses."""
+    __tablename__ = "stock_transfers"
+
+    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
+    tracking_number: Mapped[str] = mapped_column(String(60), unique=True, nullable=False)
+
+    recommendation_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("redistribution_recommendations.id"))
+
+    source_facility_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("facilities.id"))
+    source_warehouse_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("warehouses.id"))
+    destination_facility_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("facilities.id"), nullable=False)
+
+    medicine_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("medicines.id"), nullable=False)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    status: Mapped[str] = mapped_column(String(30), default=TransferStatus.PENDING, nullable=False)
+
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("users.id"))
+    approved_by_user_id: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("users.id"))
+
+    dispatched_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    received_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    notes: Mapped[str | None] = mapped_column(String(500))
+
 
 

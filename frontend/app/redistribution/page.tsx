@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Nav } from "../../components/nav";
 import { api } from "../../lib/api";
 import { useAuth } from "../../lib/auth-context";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   RefreshCw,
@@ -88,7 +89,14 @@ function ScoreBar({ label, value, isPositive = true }: { label: string; value: n
   );
 }
 
-function RecommendationCard({ rec }: { rec: Recommendation }) {
+function RecommendationCard({
+  rec,
+  onInitiateTransfer,
+}: {
+  rec: Recommendation;
+  onInitiateTransfer?: (id: string) => void;
+}) {
+
   const [expanded, setExpanded] = useState(false);
   const srcName = rec.source_facility_name || rec.source_warehouse_name || "Network Source";
   const srcType = rec.source_facility_type || (rec.source_warehouse_name ? "Warehouse" : "");
@@ -172,12 +180,22 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
               {rec.status}
             </span>
 
+            {rec.status === "RECOMMENDED" && onInitiateTransfer && (
+              <button
+                onClick={() => onInitiateTransfer(rec.id)}
+                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white transition-all shadow-xs flex items-center gap-1"
+              >
+                Initiate Transfer →
+              </button>
+            )}
+
             <button
               onClick={() => setExpanded(!expanded)}
               className="p-1.5 rounded-lg hover:bg-slate-700 transition-colors text-slate-400"
             >
               {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
+
           </div>
         </div>
 
@@ -239,6 +257,7 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
 
 export default function RedistributionPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [recs, setRecs] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -279,6 +298,16 @@ export default function RedistributionPage() {
       setGenerating(false);
     }
   };
+
+  const handleInitiateTransfer = async (recId: string) => {
+    try {
+      await api(`/transfers/from-recommendation/${recId}`, { method: "POST" });
+      router.push("/transfers");
+    } catch (err: any) {
+      alert(`Failed to initiate transfer: ${err.message || "Unknown error"}`);
+    }
+  };
+
 
   const filteredRecs = recs.filter((r) => {
     const matchesStatus = statusFilter === "ALL" || r.status === statusFilter;
@@ -421,8 +450,9 @@ export default function RedistributionPage() {
                 Showing {filteredRecs.length} recommendation{filteredRecs.length !== 1 ? "s" : ""}, ranked by AI score ↓
               </p>
               {filteredRecs.map((rec) => (
-                <RecommendationCard key={rec.id} rec={rec} />
+                <RecommendationCard key={rec.id} rec={rec} onInitiateTransfer={handleInitiateTransfer} />
               ))}
+
             </div>
           )}
         </div>

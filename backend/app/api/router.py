@@ -9,6 +9,7 @@ from app.api.routes.forecasts import router as forecasts_router
 from app.api.routes.risks import router as risks_router
 from app.api.routes.expiry import router as expiry_router
 from app.api.routes.redistribution import router as redistribution_router
+from app.api.routes.transfers import router as transfers_router
 
 api_router = APIRouter(prefix="/api")
 api_router.include_router(health_router, tags=["system"])
@@ -20,6 +21,8 @@ api_router.include_router(forecasts_router, prefix="/forecasts", tags=["demand f
 api_router.include_router(risks_router, prefix="/risks", tags=["stockout risks"])
 api_router.include_router(expiry_router, prefix="/expiry", tags=["expiry rescue"])
 api_router.include_router(redistribution_router, prefix="/redistribution", tags=["redistribution engine"])
+api_router.include_router(transfers_router, prefix="/transfers", tags=["stock transfers"])
+
 
 
 
