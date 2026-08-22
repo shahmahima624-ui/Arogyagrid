@@ -1,99 +1,95 @@
-# AarogyaGrid
+# AarogyaGrid — AI-Powered National Health Mission Supply Chain Resilience Platform
 
-**Predict. Redistribute. Prevent.**
+AarogyaGrid is an end-to-end, production-ready AI supply chain resilience platform built for the **National Health Mission (NHM)**. It prevents stockouts of essential medicines across Primary Health Centres (PHCs), Community Health Centres (CHCs), and District Hospitals through real-time telemetry, predictive demand forecasting, FEFO expiry rescue, automated redistribution, voice inventory reporting, multimodal register digitisation, interactive Leaflet geo-mapping, and what-if stress simulation.
 
-AarogyaGrid is a medicine supply resilience platform for public healthcare facilities. It will help district teams monitor inventory, forecast consumption, identify stock-out risk, rescue medicines approaching expiry, and safely recommend human-approved redistribution.
+---
 
-## Current implementation status
-
-This repository now provides the Phase 1 operational foundation:
-
-- Next.js, TypeScript, and Tailwind CSS frontend
-- FastAPI backend with `GET /api/health`
-- Environment-driven PostgreSQL configuration
-- Docker Compose PostgreSQL service and optional application containers
-- Frontend-to-backend health connectivity check
-- Core district, facility, warehouse, medicine, inventory, and consumption APIs
-- Alembic migration scaffold and deterministic synthetic seed script
-- Facilities, inventory, consumption, dashboard, and consumption intelligence pages
-- Deterministic consumption aggregation, feature engineering, and a gap-filled facility-medicine time series API
-
-Demand forecasting, stock-out risk assessment, transfers, and AI features have not been implemented yet.
-
-## Phase 4: Consumption intelligence
-
-`GET /api/consumption-intelligence/series` prepares a chronological daily series for one facility and medicine. It aggregates multiple records on the same day, fills missing days with zero consumption, excludes expired stock from `current_usable_stock`, and provides deterministic ML-ready features: lags (1/7/14), rolling means (7/14), rolling standard deviation, calendar features, patient count, and current stock.
-
-Example:
+## 🏛️ System Architecture
 
 ```text
-GET /api/consumption-intelligence/series?facility_id=<uuid>&medicine_id=<uuid>&days=90
+               +-------------------------------------------+
+               |        Next.js 15 Tailwind Frontend        |
+               |  (21 Client Routes, Dark Cyber Aesthetic)  |
+               +---------------------+---------------------+
+                                     |
+                                     v
+               +-------------------------------------------+
+               |          FastAPI Backend (Python)         |
+               |  (17 Module Services, RBAC, Pydantic)      |
+               +----------+----------------------+----------+
+                          |                      |
+                          v                      v
+      +-----------------------+              +-----------------------+
+      |  Supabase PostgreSQL  |              |   Google Gemini 2.5   |
+      |   (Live Relational)   |              |  (Multimodal & Copilot)|
+      +-----------------------+              +-----------------------+
 ```
 
-The `/consumption-intelligence` frontend page provides a 90-day trend, average daily demand, and recent demand change. These are historical indicators, not forecasts.
+---
 
-## Project structure
+## 📋 Comprehensive Feature Map (Phases 1 – 17)
 
-```text
-frontend/       Next.js application
-backend/        FastAPI application and tests
-docs/           Architecture and project documentation
-docker-compose.yml
-.env.example
-```
+1. **Phase 1 — Core Domain Models**: Relational schemas for Districts, Facilities, Warehouses, Medicines, Inventory Batches, Consumption Records, and Audit Logs.
+2. **Phase 2 — Auth & RBAC**: Firebase JWT authentication & role-based middleware (`DISTRICT_ADMIN`, `FACILITY_ADMIN`, `HEALTHCARE_STAFF`, `WAREHOUSE_MANAGER`).
+3. **Phase 3 — Command Centre Dashboard**: Real-time district supply KPIs, critical facility alerts, and stock health meters.
+4. **Phase 4 — Consumption Intelligence**: Daily patient consumption records, 30-day moving averages, and consumption anomaly detection.
+5. **Phase 5 — Demand Forecasting Engine**: Multi-horizon demand prediction (7-day, 30-day, 90-day forecasts) combining exponential smoothing and trend analysis.
+6. **Phase 6 — Stockout Risk Engine**: Precise Days-to-Stockout (DTS) calculation, stockout window alerts (Critical ≤3d, High ≤7d, Medium ≤14d).
+7. **Phase 7 — FEFO Expiry Rescue**: First-Expiry-First-Out candidate detection matching batches expiring ≤90 days with safe surplus facilities.
+8. **Phase 8 — AI Redistribution Engine**: Transparent multi-factor scoring formula incorporating Haversine geodesic distance penalties to match surplus and shortage facilities.
+9. **Phase 9 — Human Approval & Stock Transfers**: Complete lifecycle management (`PENDING` → `APPROVED` → `IN_TRANSIT` → `RECEIVED`) with inventory batch auto-reconciliation and audit logging.
+10. **Phase 10 — Gemini AI Explanations**: Natural language explanations for risk scores and redistribution proposals with deterministic fallback parser.
+11. **Phase 11 — AI Supply Copilot**: Intent-driven assistant (`POST /api/ai/copilot`) executing backend query tools to answer natural language supply questions with raw factual JSON drawers.
+12. **Phase 12 — Voice Inventory Reporting**: Frontline speech reporting parsing Hindi, Hinglish, and English voice input into human-editable verification forms.
+13. **Phase 13 — Register Image Digitisation**: Gemini multimodal OCR parsing handwritten paper medicine stock register photos into structured inventory tables.
+14. **Phase 14 — Geographic Network Map**: Leaflet.js interactive map featuring 5-color facility risk markers and vector transfer routes between healthcare nodes.
+15. **Phase 15 — Health Supply Stress Simulator**: What-if surge simulation (+30%, +50% demand, supply delays) projecting 30-day stock trajectories and emergency stock buffers.
+16. **Phase 16 — Production Containerization & Reports**: Docker, Docker Compose, Nginx reverse proxy, streaming CSV exports, printable National Health Mission dispatch manifests, and PWA manifest.
+17. **Phase 17 — System Health & Telemetry**: Diagnostics endpoint (`GET /api/health/diagnostics`) reporting live database latency, table record counters, and memory usage.
 
-## Phase 1 database setup
+---
 
-After PostgreSQL is available, apply the initial migration and seed synthetic demo data:
+## ⚡ Quick Start & Setup
 
+### Prerequisites
+- Python 3.14+
+- Node.js 22+
+- Docker & Docker Compose (optional for production deployment)
+
+### 1. Backend Setup
 ```bash
 cd backend
-alembic upgrade head
-python scripts/seed.py
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Run pytest suite
+PYTHONPATH=. venv/bin/pytest
+
+# Start development server
+uvicorn app.main:app --reload --port 8000
 ```
 
-The seed creates one Gujarat district, nine facilities, one warehouse, 15 medicines, inventory batches, and 90 days of synthetic consumption. It is idempotent and contains no patient data.
-
-## Local development
-
-1. Copy `.env.example` to `.env` and set your `SUPABASE_DATABASE_URL` / `DATABASE_URL` credentials:
-
-   ```bash
-   SUPABASE_DATABASE_URL=postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?sslmode=require
-   ```
-
-
-
-3. Start the backend from `backend/`:
-
-   ```bash
-   python -m venv .venv
-   .venv\\Scripts\\activate
-   pip install -r requirements.txt
-   uvicorn app.main:app --reload --port 8000
-   ```
-
-4. In another terminal, start the frontend from `frontend/`:
-
-   ```bash
-   npm install
-   npm run dev
-   ```
-
-Open `http://localhost:3000`. The landing page reports whether it can reach the API.
-
-## Verification
-
+### 2. Frontend Setup
 ```bash
-curl http://localhost:8000/api/health
+cd frontend
+npm install --legacy-peer-deps
+
+# Build Next.js bundle
+npm run build
+
+# Start development server
+npm run dev
 ```
 
-Expected response:
-
-```json
-{"status":"ok","service":"AarogyaGrid API"}
+### 3. Docker Deployment
+```bash
+# Build and run backend, frontend, and Nginx reverse proxy
+docker compose up --build -d
 ```
 
-## Configuration
+---
 
-See `.env.example` for all Phase 0 environment variables. Do not commit `.env` files or credentials.
+## 🛡️ License & Credits
+
+Built for the **National Health Mission (NHM)** to guarantee zero preventable stockouts of essential life-saving medicines.
