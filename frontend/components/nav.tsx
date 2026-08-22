@@ -12,6 +12,7 @@ import {
   BarChart3,
   TrendingUp,
   ShieldAlert,
+  Clock,
   LogOut,
   User,
   ShieldCheck,
@@ -30,6 +31,7 @@ export function Nav() {
   const navLinks = [
     { href: "/dashboard", label: "Command Centre", icon: LayoutDashboard },
     { href: "/risks", label: "Risk Engine", icon: ShieldAlert },
+    { href: "/expiry-rescue", label: "Expiry Rescue", icon: Clock },
     { href: "/forecasts", label: "Forecasts", icon: TrendingUp },
     { href: "/facilities", label: "Facilities", icon: Building2 },
     { href: "/inventory", label: "Inventory", icon: Boxes },
