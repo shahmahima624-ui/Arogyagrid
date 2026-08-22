@@ -151,9 +151,9 @@ export default function VoiceReportingPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-slate-900 text-slate-100 pb-16">
+      <main className="min-h-screen bg-white text-slate-900 pb-16">
         {/* Header Banner */}
-        <div className="border-b border-slate-800 bg-slate-950/60 backdrop-blur px-4 sm:px-6 lg:px-8 py-6">
+        <div className="border-b border-slate-200 bg-white/95 backdrop-blur px-4 sm:px-6 lg:px-8 py-6">
           <div className="mx-auto max-w-7xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
@@ -162,7 +162,7 @@ export default function VoiceReportingPage() {
                   Phase 12 — Frontline Voice Inventory Reporting
                 </p>
               </div>
-              <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+              <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
                 <Mic className="h-7 w-7 text-emerald-400" />
                 Voice Inventory Reporting
               </h1>
@@ -183,13 +183,13 @@ export default function VoiceReportingPage() {
 
         <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
           {/* Step 1: Voice Input Section */}
-          <section className="rounded-2xl border border-slate-800 bg-slate-800/40 p-6 backdrop-blur space-y-4">
+          <section className="rounded-2xl border border-slate-200 bg-slate-50 p-6 backdrop-blur space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                 <Volume2 className="h-5 w-5 text-emerald-400" />
                 1. Speak or Enter Frontline Inventory Report
               </h2>
-              <span className="text-xs font-mono text-slate-400 bg-slate-900 px-2.5 py-1 rounded-md border border-slate-700">
+              <span className="text-xs font-mono text-slate-500 bg-slate-900 px-2.5 py-1 rounded-md border border-slate-200">
                 Languages: Hindi • Hinglish • English
               </span>
             </div>
@@ -200,15 +200,15 @@ export default function VoiceReportingPage() {
                 onClick={handleSimulateRecording}
                 className={`px-5 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 shadow-lg ${
                   isRecording
-                    ? "bg-rose-600 text-white animate-pulse shadow-rose-950"
-                    : "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-950"
+                    ? "bg-rose-600 text-slate-900 animate-pulse shadow-rose-950"
+                    : "bg-emerald-600 hover:bg-emerald-700 text-slate-900 shadow-emerald-950"
                 }`}
               >
                 {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
                 {isRecording ? "Listening Speech..." : "Tap to Speak"}
               </button>
 
-              <div className="text-xs text-slate-400">
+              <div className="text-xs text-slate-500">
                 Or choose a sample audio transcript preset:
               </div>
             </div>
@@ -222,7 +222,7 @@ export default function VoiceReportingPage() {
                     setTranscript(p.text);
                     handleProcessTranscript(p.text);
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs text-slate-300 font-medium transition-all text-left"
+                  className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-100 border border-slate-200 text-xs text-slate-600 font-medium transition-all text-left"
                 >
                   <span className="text-emerald-400 font-bold mr-1">{p.label}:</span>
                   &quot;{p.text}&quot;
@@ -237,14 +237,14 @@ export default function VoiceReportingPage() {
                 value={transcript}
                 onChange={(e) => setTranscript(e.target.value)}
                 placeholder="Example: Paracetamol 500 mg ke 240 tablets bache hain. Aaj 37 use hue."
-                className="w-full rounded-xl bg-slate-900 border border-slate-700 p-4 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-emerald-500"
+                className="w-full rounded-xl bg-white border border-slate-200 p-4 text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               />
             </div>
 
             <button
               onClick={() => handleProcessTranscript()}
               disabled={loading || !transcript.trim()}
-              className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-sm transition-all flex items-center gap-2 shadow-xs"
+              className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-slate-900 font-bold text-sm transition-all flex items-center gap-2 shadow-xs"
             >
               <Sparkles className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               {loading ? "Extracting Draft..." : "Extract Inventory Draft"}
@@ -253,10 +253,10 @@ export default function VoiceReportingPage() {
 
           {/* Step 2: Human Verification Editable Draft Form */}
           {extractedDrafts.length > 0 && (
-            <section className="rounded-2xl border border-purple-800 bg-slate-800/60 p-6 backdrop-blur space-y-6 shadow-xl">
-              <div className="flex items-center justify-between border-b border-slate-700/60 pb-4">
+            <section className="rounded-2xl border border-purple-800 bg-white p-6 backdrop-blur space-y-6 shadow-xl">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-4">
                 <div>
-                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                     <Edit3 className="h-5 w-5 text-purple-400" />
                     2. Human Verification & Editable Draft
                   </h2>
@@ -275,53 +275,53 @@ export default function VoiceReportingPage() {
                 {extractedDrafts.map((item, idx) => (
                   <div
                     key={idx}
-                    className="p-4 rounded-xl border border-slate-700 bg-slate-900/80 grid grid-cols-1 md:grid-cols-4 gap-4 items-center"
+                    className="p-4 rounded-xl border border-slate-200 bg-slate-900/80 grid grid-cols-1 md:grid-cols-4 gap-4 items-center"
                   >
                     <div>
-                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                         Medicine Name
                       </label>
                       <input
                         type="text"
                         value={item.medicine_name}
                         onChange={(e) => handleItemChange(idx, "medicine_name", e.target.value)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-bold"
+                        className="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-900 font-bold"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                         Remaining Stock Qty
                       </label>
                       <input
                         type="number"
                         value={item.remaining_stock ?? 0}
                         onChange={(e) => handleItemChange(idx, "remaining_stock", parseInt(e.target.value) || 0)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-emerald-400 font-bold"
+                        className="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono text-emerald-400 font-bold"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                         Consumed Today Qty
                       </label>
                       <input
                         type="number"
                         value={item.consumed_today ?? 0}
                         onChange={(e) => handleItemChange(idx, "consumed_today", parseInt(e.target.value) || 0)}
-                        className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm font-mono text-purple-300 font-bold"
+                        className="w-full bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono text-purple-300 font-bold"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                         AI Confidence
                       </label>
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-mono font-bold text-emerald-300">
                           {Math.round((item.confidence_score || 0.9) * 100)}%
                         </span>
-                        <span className="text-[10px] text-slate-400 truncate">
+                        <span className="text-[10px] text-slate-500 truncate">
                           {item.language_detected}
                         </span>
                       </div>
@@ -334,7 +334,7 @@ export default function VoiceReportingPage() {
                 <button
                   onClick={handleSubmitVerifiedReport}
                   disabled={submitting}
-                  className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm transition-all shadow-lg shadow-emerald-950 flex items-center gap-2"
+                  className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-slate-900 font-extrabold text-sm transition-all shadow-lg shadow-emerald-950 flex items-center gap-2"
                 >
                   <Save className="h-4 w-4" />
                   {submitting ? "Reconciling Database..." : "Confirm & Save to Live Inventory"}

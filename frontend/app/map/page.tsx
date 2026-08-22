@@ -19,8 +19,8 @@ import {
 const LeafletMap = dynamic(() => import("../../components/LeafletMap"), {
   ssr: false,
   loading: () => (
-    <div className="flex items-center justify-center h-[520px] bg-slate-900 rounded-2xl border border-slate-800">
-      <div className="text-slate-400 text-sm flex items-center gap-2">
+    <div className="flex items-center justify-center h-[520px] bg-slate-900 rounded-2xl border border-slate-200">
+      <div className="text-slate-500 text-sm flex items-center gap-2">
         <RefreshCw className="h-4 w-4 animate-spin" />
         Loading map...
       </div>
@@ -106,9 +106,9 @@ export default function GeoMapPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-slate-900 text-slate-100 pb-16">
+      <main className="min-h-screen bg-white text-slate-900 pb-16">
         {/* Banner */}
-        <div className="border-b border-slate-800 bg-slate-950/60 backdrop-blur px-4 sm:px-6 lg:px-8 py-6">
+        <div className="border-b border-slate-200 bg-white/95 backdrop-blur px-4 sm:px-6 lg:px-8 py-6">
           <div className="mx-auto max-w-7xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
@@ -117,18 +117,18 @@ export default function GeoMapPage() {
                   Phase 14 — Geographic Network Map
                 </p>
               </div>
-              <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+              <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
                 <MapPin className="h-7 w-7 text-cyan-400" />
                 Medicine Resilience Network
               </h1>
-              <p className="mt-1 text-sm text-slate-400">
+              <p className="mt-1 text-sm text-slate-500">
                 Real-time facility risk map with transfer route overlays. Click any marker for detail.
               </p>
             </div>
             <button
               onClick={fetchMap}
               disabled={loading}
-              className="px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-bold flex items-center gap-2 transition-all"
+              className="px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-700 text-slate-600 text-sm font-bold flex items-center gap-2 transition-all"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
               Refresh
@@ -153,7 +153,7 @@ export default function GeoMapPage() {
               );
             })}
             {mapData && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-800 text-xs font-bold text-slate-300 ml-auto">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-100 text-xs font-bold text-slate-600 ml-auto">
                 <Truck className="h-3.5 w-3.5 text-cyan-400" />
                 {mapData.transfer_routes.length} Active Route{mapData.transfer_routes.length !== 1 ? "s" : ""}
               </div>
@@ -172,8 +172,8 @@ export default function GeoMapPage() {
                   onSelectMarker={setSelected}
                 />
               ) : (
-                <div className="flex items-center justify-center h-[520px] bg-slate-900/50 rounded-2xl border border-slate-800">
-                  <div className="text-slate-400 text-sm flex items-center gap-2">
+                <div className="flex items-center justify-center h-[520px] bg-slate-50 rounded-2xl border border-slate-200">
+                  <div className="text-slate-500 text-sm flex items-center gap-2">
                     <RefreshCw className="h-4 w-4 animate-spin" />
                     Loading map data...
                   </div>
@@ -184,8 +184,8 @@ export default function GeoMapPage() {
             {/* Side Panel */}
             <div className="space-y-4">
               {/* Legend */}
-              <div className="rounded-2xl border border-slate-800 bg-slate-800/40 p-4 backdrop-blur">
-                <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 backdrop-blur">
+                <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
                   <Info className="h-4 w-4 text-cyan-400" />
                   Risk Color Legend
                 </h3>
@@ -199,7 +199,7 @@ export default function GeoMapPage() {
                       </div>
                     );
                   })}
-                  <div className="flex items-center gap-2 text-xs mt-1 pt-2 border-t border-slate-700">
+                  <div className="flex items-center gap-2 text-xs mt-1 pt-2 border-t border-slate-200">
                     <span className="h-0.5 w-6 bg-cyan-500 rounded" />
                     <span className="text-cyan-300 font-bold">Transfer Route</span>
                   </div>
@@ -208,11 +208,11 @@ export default function GeoMapPage() {
 
               {/* Selected Facility Detail */}
               {selected ? (
-                <div className={`rounded-2xl border ${COLOR_STYLES[selected.risk_color]?.border ?? "border-slate-700"} ${COLOR_STYLES[selected.risk_color]?.bg ?? "bg-slate-800/40"} p-4 backdrop-blur`}>
+                <div className={`rounded-2xl border ${COLOR_STYLES[selected.risk_color]?.border ?? "border-slate-200"} ${COLOR_STYLES[selected.risk_color]?.bg ?? "bg-slate-50"} p-4 backdrop-blur`}>
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div>
-                      <h3 className="font-extrabold text-white text-base">{selected.name}</h3>
-                      <p className="text-xs text-slate-400 mt-0.5">{selected.facility_type} · {selected.district_name}</p>
+                      <h3 className="font-extrabold text-slate-900 text-base">{selected.name}</h3>
+                      <p className="text-xs text-slate-500 mt-0.5">{selected.facility_type} · {selected.district_name}</p>
                     </div>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${COLOR_STYLES[selected.risk_color]?.text ?? ""} ${COLOR_STYLES[selected.risk_color]?.bg ?? ""} border ${COLOR_STYLES[selected.risk_color]?.border ?? ""}`}>
                       {selected.risk_label}
@@ -220,14 +220,14 @@ export default function GeoMapPage() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="bg-slate-900/60 rounded-lg p-2.5">
-                      <div className="text-slate-400 font-medium">Risk Score</div>
+                    <div className="bg-slate-50 rounded-lg p-2.5">
+                      <div className="text-slate-500 font-medium">Risk Score</div>
                       <div className="text-white font-extrabold font-mono text-lg">
                         {Math.round(selected.risk_score * 100)}%
                       </div>
                     </div>
-                    <div className="bg-slate-900/60 rounded-lg p-2.5">
-                      <div className="text-slate-400 font-medium">Stock Items</div>
+                    <div className="bg-slate-50 rounded-lg p-2.5">
+                      <div className="text-slate-500 font-medium">Stock Items</div>
                       <div className="text-white font-extrabold font-mono text-lg">{selected.total_stock_items}</div>
                     </div>
                     <div className="bg-rose-950/40 rounded-lg p-2.5 border border-rose-900">
@@ -244,7 +244,7 @@ export default function GeoMapPage() {
                     </div>
                   </div>
 
-                  <div className="mt-3 pt-3 border-t border-slate-700/60 text-xs text-slate-400">
+                  <div className="mt-3 pt-3 border-t border-slate-200 text-xs text-slate-500">
                     <span className="text-cyan-300 font-bold">{selected.pending_transfers}</span> pending transfer(s) involving this facility
                   </div>
                   <div className="mt-1 text-xs text-slate-500 font-mono">
@@ -252,7 +252,7 @@ export default function GeoMapPage() {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-2xl border border-slate-800 bg-slate-800/20 p-4 text-center text-slate-500 text-sm">
+                <div className="rounded-2xl border border-slate-200 bg-slate-800/20 p-4 text-center text-slate-500 text-sm">
                   <MapPin className="h-8 w-8 mx-auto mb-2 text-slate-600" />
                   Click a facility marker on the map to see risk details
                 </div>
@@ -260,17 +260,17 @@ export default function GeoMapPage() {
 
               {/* Transfer Routes List */}
               {mapData && mapData.transfer_routes.length > 0 && (
-                <div className="rounded-2xl border border-slate-800 bg-slate-800/40 p-4 backdrop-blur">
-                  <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 backdrop-blur">
+                  <h3 className="text-sm font-bold text-slate-900 mb-3 flex items-center gap-2">
                     <Truck className="h-4 w-4 text-cyan-400" />
                     Active Transfer Routes
                   </h3>
                   <div className="space-y-2">
                     {mapData.transfer_routes.slice(0, 6).map((r, i) => (
-                      <div key={i} className="text-xs bg-slate-900/60 rounded-lg p-2.5 border border-slate-700">
-                        <div className="font-bold text-slate-200">{r.medicine_name}</div>
-                        <div className="text-slate-400 mt-0.5">Qty: <span className="text-cyan-300 font-mono font-bold">{r.quantity}</span></div>
-                        <div className={`mt-1 font-bold ${r.status === "IN_TRANSIT" ? "text-amber-300" : r.status === "APPROVED" ? "text-emerald-300" : "text-slate-400"}`}>
+                      <div key={i} className="text-xs bg-slate-50 rounded-lg p-2.5 border border-slate-200">
+                        <div className="font-bold text-slate-700">{r.medicine_name}</div>
+                        <div className="text-slate-500 mt-0.5">Qty: <span className="text-cyan-300 font-mono font-bold">{r.quantity}</span></div>
+                        <div className={`mt-1 font-bold ${r.status === "IN_TRANSIT" ? "text-amber-300" : r.status === "APPROVED" ? "text-emerald-300" : "text-slate-500"}`}>
                           {r.status}
                         </div>
                       </div>

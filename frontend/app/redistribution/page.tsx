@@ -81,14 +81,14 @@ const STATUS_COLORS: Record<string, string> = {
   PENDING: "bg-amber-950/60 text-amber-300 border-amber-700",
   APPROVED: "bg-blue-950/60 text-blue-300 border-blue-700",
   REJECTED: "bg-rose-950/60 text-rose-300 border-rose-700",
-  CANCELLED: "bg-slate-800 text-slate-400 border-slate-700",
+  CANCELLED: "bg-slate-100 text-slate-500 border-slate-200",
 };
 
 function ScoreBar({ label, value, isPositive = true }: { label: string; value: number; isPositive?: boolean }) {
   const pct = Math.round(Math.abs(value) * 100);
   return (
     <div className="flex items-center gap-2 text-xs">
-      <span className="w-32 text-slate-400 shrink-0">{label}</span>
+      <span className="w-32 text-slate-500 shrink-0">{label}</span>
       <div className="flex-1 bg-slate-900 rounded-full h-1.5 overflow-hidden">
         <div
           className={`h-1.5 rounded-full transition-all ${isPositive ? "bg-emerald-500" : "bg-rose-500"}`}
@@ -104,41 +104,41 @@ function ScoreBar({ label, value, isPositive = true }: { label: string; value: n
 
 function AIExplanationModal({ explanation, onClose }: { explanation: AIExplanation; onClose: () => void }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-50/80 backdrop-blur-md p-4">
       <div className="relative w-full max-w-2xl rounded-2xl border border-purple-800 bg-slate-900 p-6 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
           <div className="flex items-center gap-2 text-purple-400">
             <Sparkles className="h-5 w-5 text-purple-400" />
-            <h3 className="text-lg font-bold text-white">Gemini AI Executive Explanation</h3>
+            <h3 className="text-lg font-bold text-slate-900">Gemini AI Executive Explanation</h3>
           </div>
-          <button onClick={onClose} className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white">
+          <button onClick={onClose} className="rounded-lg p-1 text-slate-500 hover:bg-slate-100 hover:text-white">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="space-y-4 text-sm text-slate-200">
+        <div className="space-y-4 text-sm text-slate-700">
           <div className="bg-purple-950/40 p-4 rounded-xl border border-purple-800/60">
             <h4 className="text-xs font-bold text-purple-300 uppercase tracking-wider mb-1">Executive Summary</h4>
             <p className="leading-relaxed text-purple-100">{explanation.executive_summary}</p>
           </div>
 
-          <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60">
+          <div className="bg-white p-4 rounded-xl border border-slate-200">
             <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">Source Selection Rationale</h4>
             <p className="leading-relaxed">{explanation.source_selection_rationale}</p>
           </div>
 
-          <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60">
+          <div className="bg-white p-4 rounded-xl border border-slate-200">
             <h4 className="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-1">Clinical & Operational Impact</h4>
             <p className="leading-relaxed">{explanation.operational_impact}</p>
           </div>
 
-          <div className="bg-slate-800/60 p-4 rounded-xl border border-slate-700/60">
+          <div className="bg-white p-4 rounded-xl border border-slate-200">
             <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">Risk Mitigation Plan</h4>
             <p className="leading-relaxed">{explanation.risk_mitigation_plan}</p>
           </div>
         </div>
 
-        <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500 font-mono">
+        <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500 font-mono">
           <span>Model: {explanation.model_used}</span>
           <span>Generated: {new Date(explanation.generated_at).toLocaleTimeString()}</span>
         </div>
@@ -168,7 +168,7 @@ function RecommendationCard({
       ? "border-rose-800 bg-rose-950/20"
       : (rec.destination_days_to_stockout ?? 99) <= 7
       ? "border-amber-800 bg-amber-950/20"
-      : "border-slate-800 bg-slate-800/40";
+      : "border-slate-200 bg-slate-50";
 
   return (
     <div className={`rounded-2xl border ${urgencyColor} backdrop-blur shadow-sm overflow-hidden transition-all`}>
@@ -180,8 +180,8 @@ function RecommendationCard({
             <div className="flex items-center gap-2">
               <Building2 className="h-4 w-4 text-emerald-400 shrink-0" />
               <div>
-                <div className="font-bold text-white text-sm">{srcName}</div>
-                <div className="text-[10px] text-slate-400 font-mono">{srcType}</div>
+                <div className="font-bold text-slate-900 text-sm">{srcName}</div>
+                <div className="text-[10px] text-slate-500 font-mono">{srcType}</div>
               </div>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-950/60 border border-emerald-800">
@@ -193,7 +193,7 @@ function RecommendationCard({
             <div className="flex items-center gap-2">
               <TrendingDown className="h-4 w-4 text-rose-400 shrink-0" />
               <div>
-                <div className="font-bold text-white text-sm">{rec.destination_facility_name}</div>
+                <div className="font-bold text-slate-900 text-sm">{rec.destination_facility_name}</div>
                 <div className="text-[10px] text-rose-300 font-mono">
                   {rec.destination_days_to_stockout !== undefined
                     ? `⚡ ${rec.destination_days_to_stockout.toFixed(1)} days to stockout`
@@ -207,27 +207,27 @@ function RecommendationCard({
           <div className="flex items-center gap-4 shrink-0 flex-wrap">
             {rec.distance_km && (
               <div className="text-center">
-                <div className="text-xs text-slate-400">Distance</div>
-                <div className="text-sm font-bold text-slate-200 font-mono">
+                <div className="text-xs text-slate-500">Distance</div>
+                <div className="text-sm font-bold text-slate-700 font-mono">
                   <MapPin className="h-3 w-3 inline text-emerald-400 mr-0.5" />
                   {rec.distance_km.toFixed(1)} km
                 </div>
               </div>
             )}
             <div className="text-center">
-              <div className="text-xs text-slate-400">Coverage Restored</div>
+              <div className="text-xs text-slate-500">Coverage Restored</div>
               <div className="text-sm font-bold text-emerald-300 font-mono">
                 ~{rec.estimated_coverage_days_restored?.toFixed(0) ?? "?"}d
               </div>
             </div>
             <div className="text-center">
-              <div className="text-xs text-slate-400">Score</div>
-              <div className="text-xl font-black text-white font-mono">
+              <div className="text-xs text-slate-500">Score</div>
+              <div className="text-xl font-black text-slate-900 font-mono">
                 {rec.score.toFixed(2)}
               </div>
             </div>
 
-            <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${STATUS_COLORS[rec.status] ?? "bg-slate-800 text-slate-400 border-slate-700"}`}>
+            <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold border ${STATUS_COLORS[rec.status] ?? "bg-slate-100 text-slate-500 border-slate-200"}`}>
               {rec.status}
             </span>
 
@@ -245,7 +245,7 @@ function RecommendationCard({
             {rec.status === "RECOMMENDED" && onInitiateTransfer && (
               <button
                 onClick={() => onInitiateTransfer(rec.id)}
-                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-white transition-all shadow-xs flex items-center gap-1"
+                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-xs font-bold text-slate-900 transition-all shadow-xs flex items-center gap-1"
               >
                 Initiate Transfer →
               </button>
@@ -253,7 +253,7 @@ function RecommendationCard({
 
             <button
               onClick={() => setExpanded(!expanded)}
-              className="p-1.5 rounded-lg hover:bg-slate-700 transition-colors text-slate-400"
+              className="p-1.5 rounded-lg hover:bg-slate-700 transition-colors text-slate-500"
             >
               {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
@@ -265,7 +265,7 @@ function RecommendationCard({
           <span className="text-xs font-mono text-purple-300 bg-purple-950/60 border border-purple-800 px-2 py-0.5 rounded">
             {rec.medicine_name}
           </span>
-          <span className="text-xs text-slate-400">{rec.category}</span>
+          <span className="text-xs text-slate-500">{rec.category}</span>
           {rec.source_safe_surplus && (
             <span className="text-xs text-emerald-300">
               Source surplus: {rec.source_safe_surplus.toLocaleString()} {rec.unit}
@@ -276,9 +276,9 @@ function RecommendationCard({
 
       {/* Expanded: Score Breakdown & Reason */}
       {expanded && (
-        <div className="border-t border-slate-700/60 p-5 grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-900/40">
+        <div className="border-t border-slate-200 p-5 grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-900/40">
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
               <BarChart3 className="h-3.5 w-3.5" />
               Transparent Score Breakdown
             </h4>
@@ -289,19 +289,19 @@ function RecommendationCard({
               <ScoreBar label="Impact Weight" value={rec.score_breakdown.impact_weight} isPositive={true} />
               <ScoreBar label="Distance Penalty" value={rec.score_breakdown.distance_penalty} isPositive={false} />
               <ScoreBar label="Source Risk Penalty" value={rec.score_breakdown.source_risk_penalty} isPositive={false} />
-              <div className="border-t border-slate-700 pt-2 mt-2 flex items-center justify-between text-xs">
-                <span className="text-slate-400 font-semibold">Final Score</span>
-                <span className="font-black text-white font-mono text-base">{rec.score_breakdown.final_score.toFixed(3)}</span>
+              <div className="border-t border-slate-200 pt-2 mt-2 flex items-center justify-between text-xs">
+                <span className="text-slate-500 font-semibold">Final Score</span>
+                <span className="font-black text-slate-900 font-mono text-base">{rec.score_breakdown.final_score.toFixed(3)}</span>
               </div>
             </div>
           </div>
 
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3 flex items-center gap-1.5">
               <ShieldCheck className="h-3.5 w-3.5" />
               Engine Rationale
             </h4>
-            <p className="text-sm text-slate-300 leading-relaxed bg-slate-900/60 p-4 rounded-xl border border-slate-800">
+            <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-200">
               {rec.reason}
             </p>
           </div>
@@ -402,9 +402,9 @@ export default function RedistributionPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-slate-900 text-slate-100 pb-16">
+      <main className="min-h-screen bg-white text-slate-900 pb-16">
         {/* Banner */}
-        <div className="border-b border-slate-800 bg-slate-950/60 backdrop-blur px-4 sm:px-6 lg:px-8 py-6">
+        <div className="border-b border-slate-200 bg-white/95 backdrop-blur px-4 sm:px-6 lg:px-8 py-6">
           <div className="mx-auto max-w-7xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
@@ -413,7 +413,7 @@ export default function RedistributionPage() {
                   Phase 10 — Gemini AI Explanation Layer
                 </p>
               </div>
-              <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+              <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
                 <Zap className="h-7 w-7 text-emerald-400" />
                 Redistribution Engine & AI Explainer
               </h1>
@@ -423,7 +423,7 @@ export default function RedistributionPage() {
               <button
                 onClick={handleGenerate}
                 disabled={generating}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white transition-all shadow-lg shadow-emerald-900/30 self-start md:self-auto"
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-5 py-2.5 text-sm font-bold text-slate-900 transition-all shadow-lg shadow-emerald-900/30 self-start md:self-auto"
               >
                 <Zap className={`h-4 w-4 ${generating ? "animate-pulse" : ""}`} />
                 {generating ? "Analysing Network..." : "Generate Recommendations"}
@@ -435,9 +435,9 @@ export default function RedistributionPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
           {/* KPI Row */}
           <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/60 p-4 backdrop-blur">
-              <div className="text-xs text-slate-400">Total Recommendations</div>
-              <div className="text-3xl font-black text-white mt-1">{loading ? "..." : recs.length}</div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 backdrop-blur">
+              <div className="text-xs text-slate-500">Total Recommendations</div>
+              <div className="text-3xl font-black text-slate-900 mt-1">{loading ? "..." : recs.length}</div>
             </div>
             <div className="rounded-2xl border border-rose-900/80 bg-rose-950/20 p-4 backdrop-blur ring-1 ring-rose-500/20">
               <div className="text-xs font-bold text-rose-300">Critical (≤3d stockout)</div>
@@ -456,7 +456,7 @@ export default function RedistributionPage() {
           </section>
 
           {/* Filters */}
-          <div className="mb-6 flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-slate-800/40 p-4 rounded-xl border border-slate-800">
+          <div className="mb-6 flex flex-col md:flex-row items-stretch md:items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
               <input
@@ -464,16 +464,16 @@ export default function RedistributionPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search medicine, facility, warehouse..."
-                className="w-full pl-9 pr-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-emerald-500"
+                className="w-full pl-9 pr-4 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               />
             </div>
-            <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-lg border border-slate-700 text-xs overflow-x-auto">
+            <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-lg border border-slate-200 text-xs overflow-x-auto">
               {statuses.map((s) => (
                 <button
                   key={s}
                   onClick={() => setStatusFilter(s)}
                   className={`px-2.5 py-1 rounded-md font-semibold whitespace-nowrap transition-colors ${
-                    statusFilter === s ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-slate-200"
+                    statusFilter === s ? "bg-emerald-600 text-slate-900" : "text-slate-500 hover:text-slate-700"
                   }`}
                 >
                   {s === "ALL" ? "All Statuses" : s}
@@ -486,7 +486,7 @@ export default function RedistributionPage() {
           {loading ? (
             <div className="text-center text-slate-500 py-12">Loading redistribution recommendations...</div>
           ) : filteredRecs.length === 0 ? (
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/40 p-12 text-center text-slate-500">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-12 text-center text-slate-500">
               No recommendations found.
             </div>
           ) : (

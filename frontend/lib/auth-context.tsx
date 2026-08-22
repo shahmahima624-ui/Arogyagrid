@@ -1,7 +1,8 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { api, getAuthToken, setAuthToken } from "./api";
+import { supabase } from "./supabase";
+import { setAuthToken } from "./api";
 
 export type UserRole =
   | "DISTRICT_ADMIN"
@@ -21,137 +22,130 @@ export interface UserProfile {
   status: string;
 }
 
-export interface MockUserPreset {
-  token: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  roleLabel: string;
-  facilityName: string;
-  description: string;
-}
-
-export const MOCK_USERS: MockUserPreset[] = [
-  {
-    token: "mock-district-admin",
-    name: "Dr. Amit Patel",
-    email: "district.admin@aarogyagrid.org",
-    role: "DISTRICT_ADMIN",
-    roleLabel: "District Health Officer",
-    facilityName: "District Command (All Facilities)",
-    description: "Full district-wide visibility, risk analytics, and stock transfer approvals.",
-  },
-  {
-    token: "mock-facility-admin-sanand",
-    name: "Dr. Priya Shah",
-    email: "sanand.admin@aarogyagrid.org",
-    role: "FACILITY_ADMIN",
-    roleLabel: "Medical Officer In-Charge",
-    facilityName: "PHC Sanand",
-    description: "Manages PHC Sanand inventory, views local stockouts, and requests transfers.",
-  },
-  {
-    token: "mock-staff-sanand",
-    name: "Staff Nurse Anita",
-    email: "sanand.staff@aarogyagrid.org",
-    role: "HEALTHCARE_STAFF",
-    roleLabel: "Frontline Healthcare Staff",
-    facilityName: "PHC Sanand",
-    description: "Records daily medicine consumption and patient dispensing logs.",
-  },
-  {
-    token: "mock-warehouse-manager",
-    name: "Ramesh Kumar",
-    email: "warehouse.manager@aarogyagrid.org",
-    role: "WAREHOUSE_MANAGER",
-    roleLabel: "Warehouse Manager",
-    facilityName: "Ahmedabad District Drug Warehouse",
-    description: "Dispatches replenishment orders and oversees central stock reserves.",
-  },
-];
+// Default admin user — used when no session is active (all permissions open)
+const DEFAULT_USER: UserProfile = {
+  id: "default-admin",
+  firebase_uid: "anon-default",
+  name: "District Admin",
+  email: "admin@aarogyagrid.org",
+  role: "DISTRICT_ADMIN",
+  status: "ACTIVE",
+};
 
 interface AuthContextType {
   user: UserProfile | null;
-  token: string | null;
   isLoading: boolean;
-  loginAsMock: (token: string) => Promise<void>;
-  logout: () => void;
-  refreshUser: () => Promise<void>;
+  supabaseUser: any | null;
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, name: string) => Promise<{ error: string | null }>;
+  signOut: () => Promise<void>;
+  switchRole: (role: UserRole) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setTokenState] = useState<string | null>(null);
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(DEFAULT_USER);
+  const [supabaseUser, setSupabaseUser] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = async (currentToken: string) => {
-    try {
-      const profile = await api<UserProfile>("/users/me");
-      setUser(profile);
-    } catch {
-      // Fallback synthetic user based on preset if backend is launching or offline
-      const mock = MOCK_USERS.find((m) => m.token === currentToken);
-      if (mock) {
-        setUser({
-          id: "mock-user-id",
-          firebase_uid: mock.token,
-          name: mock.name,
-          email: mock.email,
-          role: mock.role,
-          status: "ACTIVE",
-        });
-      } else {
-        setUser(null);
-      }
-    }
-  };
+  // Build a UserProfile from Supabase session data
+  function buildUserProfile(sbUser: any): UserProfile {
+    return {
+      id: sbUser.id,
+      firebase_uid: sbUser.id,
+      name:
+        sbUser.user_metadata?.name ||
+        sbUser.email?.split("@")[0] ||
+        "AarogyaGrid User",
+      email: sbUser.email || "user@aarogyagrid.org",
+      // All Supabase users get DISTRICT_ADMIN by default (all permissions)
+      role:
+        (sbUser.user_metadata?.role as UserRole) || "DISTRICT_ADMIN",
+      status: "ACTIVE",
+    };
+  }
 
   useEffect(() => {
-    const savedToken = getAuthToken();
-    if (savedToken) {
-      setTokenState(savedToken);
-      fetchProfile(savedToken).finally(() => setIsLoading(false));
-    } else {
-      // Default to district admin for seamless developer experience
-      const defaultToken = "mock-district-admin";
-      setAuthToken(defaultToken);
-      setTokenState(defaultToken);
-      fetchProfile(defaultToken).finally(() => setIsLoading(false));
-    }
+    // Check existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const profile = buildUserProfile(session.user);
+        setUser(profile);
+        setSupabaseUser(session.user);
+        // Store Supabase access token so API calls carry auth header
+        setAuthToken(session.access_token);
+      } else {
+        // No session — use default admin profile so all features are accessible
+        setUser(DEFAULT_USER);
+        setAuthToken("mock-district-admin");
+      }
+      setIsLoading(false);
+    });
+
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const profile = buildUserProfile(session.user);
+        setUser(profile);
+        setSupabaseUser(session.user);
+        setAuthToken(session.access_token);
+      } else {
+        setUser(DEFAULT_USER);
+        setSupabaseUser(null);
+        setAuthToken("mock-district-admin");
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const loginAsMock = async (newToken: string) => {
+  const signIn = async (
+    email: string,
+    password: string
+  ): Promise<{ error: string | null }> => {
     setIsLoading(true);
-    setAuthToken(newToken);
-    setTokenState(newToken);
-    await fetchProfile(newToken);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     setIsLoading(false);
+    return { error: error?.message ?? null };
   };
 
-  const logout = () => {
-    setAuthToken(null);
-    setTokenState(null);
-    setUser(null);
+  const signUp = async (
+    email: string,
+    password: string,
+    name: string
+  ): Promise<{ error: string | null }> => {
+    setIsLoading(true);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name, role: "DISTRICT_ADMIN" },
+      },
+    });
+    setIsLoading(false);
+    return { error: error?.message ?? null };
   };
 
-  const refreshUser = async () => {
-    if (token) {
-      await fetchProfile(token);
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setUser(DEFAULT_USER);
+    setSupabaseUser(null);
+    setAuthToken("mock-district-admin");
+  };
+
+  // Allow quick role switching without re-auth (for demo/testing)
+  const switchRole = (role: UserRole) => {
+    if (user) {
+      setUser({ ...user, role });
     }
   };
 
   return (
     <AuthContext.Provider
-      value={{
-        user,
-        token,
-        isLoading,
-        loginAsMock,
-        logout,
-        refreshUser,
-      }}
+      value={{ user, isLoading, supabaseUser, signIn, signUp, signOut, switchRole }}
     >
       {children}
     </AuthContext.Provider>

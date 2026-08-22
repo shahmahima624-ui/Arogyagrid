@@ -151,10 +151,10 @@ export default function Dashboard() {
 
   const getUrgencyBadge = (urgency: string, days: number) => {
     if (urgency === "CRITICAL_30") {
-      return <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-rose-600 text-white">⚡ {days}d left</span>;
+      return <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-rose-600 text-slate-900">⚡ {days}d left</span>;
     }
     if (urgency === "WARNING_60") {
-      return <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-500 text-white">⏳ {days}d left</span>;
+      return <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-amber-500 text-slate-900">⏳ {days}d left</span>;
     }
     return <span className="px-2 py-0.5 rounded-md text-xs font-bold bg-blue-100 text-blue-800 border border-blue-300">{days}d left</span>;
   };
@@ -162,9 +162,9 @@ export default function Dashboard() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-slate-900 text-slate-100 pb-16">
+      <main className="min-h-screen bg-white text-slate-900 pb-16">
         {/* Command Centre Top Banner */}
-        <div className="border-b border-slate-800 bg-slate-950/60 backdrop-blur px-4 sm:px-6 lg:px-8 py-6">
+        <div className="border-b border-slate-200 bg-white/95 backdrop-blur px-4 sm:px-6 lg:px-8 py-6">
           <div className="mx-auto max-w-7xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
@@ -173,23 +173,23 @@ export default function Dashboard() {
                   Real-Time Situational Awareness
                 </p>
                 <span className="text-slate-500">•</span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-500">
                   Scope: {user?.role === "DISTRICT_ADMIN" ? "District Central Command (All Facilities)" : "Scoped Facility Portal"}
                 </span>
               </div>
-              <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                 Medicine Resilience Command Centre
               </h1>
             </div>
 
             <div className="flex items-center gap-3 self-start md:self-auto">
-              <span className="text-xs text-slate-400 hidden sm:inline-block">
+              <span className="text-xs text-slate-500 hidden sm:inline-block">
                 Last updated: {data?.as_of ? new Date(data.as_of).toLocaleTimeString() : "Live"}
               </span>
               <button
                 onClick={loadData}
                 disabled={refreshing}
-                className="inline-flex items-center gap-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3.5 py-2 text-xs font-medium text-slate-200 transition-colors shadow-xs"
+                className="inline-flex items-center gap-2 rounded-lg bg-slate-100 hover:bg-slate-700 border border-slate-200 px-3.5 py-2 text-xs font-medium text-slate-700 transition-colors shadow-xs"
               >
                 <RefreshCw className={`h-3.5 w-3.5 text-emerald-400 ${refreshing ? "animate-spin" : ""}`} />
                 {refreshing ? "Syncing..." : "Sync Live Data"}
@@ -207,42 +207,42 @@ export default function Dashboard() {
               </span>
               <span>All threshold metrics below are calculated from deterministic real-time inventory counts and labeled as <strong>Current Stock Alerts</strong>.</span>
             </div>
-            <span className="text-slate-400 hidden lg:inline">Phase 4-8 AI layers connect on top of this foundation.</span>
+            <span className="text-slate-500 hidden lg:inline">Phase 4-8 AI layers connect on top of this foundation.</span>
           </div>
 
           {/* 6 Hero KPI Metric Cards */}
           <section className="grid grid-cols-2 lg:grid-cols-6 gap-3.5 sm:gap-4 mb-8">
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/60 p-4 shadow-sm backdrop-blur">
-              <div className="flex items-center justify-between text-slate-400">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm backdrop-blur">
+              <div className="flex items-center justify-between text-slate-500">
                 <span className="text-xs font-medium">Total Facilities</span>
                 <Building2 className="h-4 w-4 text-emerald-400" />
               </div>
-              <p className="mt-2 text-2xl sm:text-3xl font-black text-white">
+              <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-900">
                 {loading ? "..." : (data?.kpis.total_facilities ?? 0)}
               </p>
-              <p className="mt-1 text-[11px] text-slate-400">PHCs, CHCs, Hospital</p>
+              <p className="mt-1 text-[11px] text-slate-500">PHCs, CHCs, Hospital</p>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/60 p-4 shadow-sm backdrop-blur">
-              <div className="flex items-center justify-between text-slate-400">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm backdrop-blur">
+              <div className="flex items-center justify-between text-slate-500">
                 <span className="text-xs font-medium">Catalog Meds</span>
                 <Boxes className="h-4 w-4 text-blue-400" />
               </div>
-              <p className="mt-2 text-2xl sm:text-3xl font-black text-white">
+              <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-900">
                 {loading ? "..." : (data?.kpis.total_medicines ?? 0)}
               </p>
-              <p className="mt-1 text-[11px] text-slate-400">Essential Catalogue</p>
+              <p className="mt-1 text-[11px] text-slate-500">Essential Catalogue</p>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/60 p-4 shadow-sm backdrop-blur">
-              <div className="flex items-center justify-between text-slate-400">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm backdrop-blur">
+              <div className="flex items-center justify-between text-slate-500">
                 <span className="text-xs font-medium">Total Inventory</span>
                 <Layers className="h-4 w-4 text-cyan-400" />
               </div>
-              <p className="mt-2 text-2xl sm:text-3xl font-black text-white">
+              <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-900">
                 {loading ? "..." : (data?.kpis.total_inventory_units.toLocaleString() ?? "0")}
               </p>
-              <p className="mt-1 text-[11px] text-slate-400">Active Units in Grid</p>
+              <p className="mt-1 text-[11px] text-slate-500">Active Units in Grid</p>
             </div>
 
             <div className="rounded-2xl border border-rose-900/60 bg-rose-950/20 p-4 shadow-sm backdrop-blur ring-1 ring-rose-500/20">
@@ -280,7 +280,7 @@ export default function Dashboard() {
           </section>
 
           {/* Tab Navigation */}
-          <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 mb-6 pb-2">
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 mb-6 pb-2">
             {[
               { id: "facilities", label: "Facility Health Matrix", icon: Building2, count: data?.facility_health.length },
               { id: "alerts", label: "Current Stock & Expiry Alerts", icon: AlertTriangle, count: (data?.expiry_alerts.length ?? 0) + (data?.stock_alerts.length ?? 0) },
@@ -295,13 +295,13 @@ export default function Dashboard() {
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                     active
                       ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-xs"
-                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 border border-transparent"
+                      : "text-slate-500 hover:text-slate-700 hover:bg-white border border-transparent"
                   }`}
                 >
                   <Icon className={`h-4 w-4 ${active ? "text-emerald-400" : "text-slate-500"}`} />
                   <span>{label}</span>
                   {count !== undefined && (
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${active ? "bg-emerald-500/30 text-emerald-200" : "bg-slate-800 text-slate-400"}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${active ? "bg-emerald-500/30 text-emerald-200" : "bg-slate-100 text-slate-500"}`}>
                       {count}
                     </span>
                   )}
@@ -314,7 +314,7 @@ export default function Dashboard() {
           {activeTab === "facilities" && (
             <div className="space-y-4">
               {/* Search & Filters */}
-              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-slate-800/40 p-4 rounded-xl border border-slate-800">
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-200">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
                   <input
@@ -322,15 +322,15 @@ export default function Dashboard() {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search facilities by name or type..."
-                    className="w-full pl-9 pr-4 py-2 rounded-lg bg-slate-900 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-emerald-500"
+                    className="w-full pl-9 pr-4 py-2 rounded-lg bg-white border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-slate-400" />
+                  <Filter className="h-4 w-4 text-slate-500" />
                   <select
                     value={facilityTypeFilter}
                     onChange={(e) => setFacilityTypeFilter(e.target.value)}
-                    className="bg-slate-900 border border-slate-700 text-sm rounded-lg px-3 py-2 text-slate-200 focus:outline-hidden focus:border-emerald-500"
+                    className="bg-white border border-slate-200 text-sm rounded-lg px-3 py-2 text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                   >
                     <option value="ALL">All Facility Types</option>
                     <option value="PHC">PHC (Primary Health Centre)</option>
@@ -341,10 +341,10 @@ export default function Dashboard() {
               </div>
 
               {/* Facilities Table / Grid */}
-              <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-800/40 backdrop-blur shadow-sm">
+              <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-slate-50 backdrop-blur shadow-sm">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-900/60">
+                    <tr className="border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-50">
                       <th className="px-6 py-4">Facility Name & Type</th>
                       <th className="px-6 py-4">District</th>
                       <th className="px-6 py-4">Total Stock Units</th>
@@ -363,20 +363,20 @@ export default function Dashboard() {
                       </tr>
                     ) : (
                       filteredFacilities.map((fac) => (
-                        <tr key={fac.id} className="hover:bg-slate-700/20 transition-colors">
+                        <tr key={fac.id} className="hover:bg-slate-50 transition-colors">
                           <td className="px-6 py-4">
-                            <div className="font-semibold text-white flex items-center gap-2">
+                            <div className="font-semibold text-slate-900 flex items-center gap-2">
                               <Building2 className="h-4 w-4 text-emerald-400" />
                               {fac.name}
                             </div>
-                            <span className="text-xs text-slate-400 font-mono">
+                            <span className="text-xs text-slate-500 font-mono">
                               Type: {fac.facility_type}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-slate-300">
+                          <td className="px-6 py-4 text-slate-600">
                             {fac.district_name}
                           </td>
-                          <td className="px-6 py-4 font-mono font-semibold text-slate-200">
+                          <td className="px-6 py-4 font-mono font-semibold text-slate-700">
                             {fac.total_stock.toLocaleString()} units
                           </td>
                           <td className="px-6 py-4">
@@ -421,22 +421,22 @@ export default function Dashboard() {
           {activeTab === "alerts" && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Expiry Alerts Section */}
-              <div className="rounded-2xl border border-slate-800 bg-slate-800/40 p-6 backdrop-blur">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 backdrop-blur">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                       <Clock className="h-5 w-5 text-amber-400" />
                       Upcoming Batch Expiries
                     </h3>
-                    <p className="text-xs text-slate-400">Batches expiring within 90 days across facilities</p>
+                    <p className="text-xs text-slate-500">Batches expiring within 90 days across facilities</p>
                   </div>
-                  <div className="flex gap-1 bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs">
+                  <div className="flex gap-1 bg-slate-900 p-1 rounded-lg border border-slate-200 text-xs">
                     {(["ALL", "CRITICAL_30", "WARNING_60"] as const).map((urg) => (
                       <button
                         key={urg}
                         onClick={() => setExpiryFilter(urg)}
                         className={`px-2 py-1 rounded-md font-medium transition-colors ${
-                          expiryFilter === urg ? "bg-amber-500/20 text-amber-300" : "text-slate-400 hover:text-slate-200"
+                          expiryFilter === urg ? "bg-amber-500/20 text-amber-300" : "text-slate-500 hover:text-slate-700"
                         }`}
                       >
                         {urg === "ALL" ? "All" : urg === "CRITICAL_30" ? "≤ 30d" : "31-60d"}
@@ -452,21 +452,21 @@ export default function Dashboard() {
                     filteredExpiries.map((exp) => (
                       <div
                         key={exp.batch_id}
-                        className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 flex items-center justify-between hover:border-slate-700 transition-colors"
+                        className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between hover:border-slate-200 transition-colors"
                       >
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-white">{exp.medicine_name}</span>
-                            <span className="text-xs font-mono text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded">
+                            <span className="font-semibold text-slate-900">{exp.medicine_name}</span>
+                            <span className="text-xs font-mono text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded">
                               {exp.batch_number}
                             </span>
                           </div>
-                          <p className="text-xs text-slate-400 mt-1">
+                          <p className="text-xs text-slate-500 mt-1">
                             📍 {exp.facility_name ?? exp.warehouse_name ?? "District Facility"} • Category: {exp.category}
                           </p>
                         </div>
                         <div className="text-right">
-                          <div className="font-mono font-bold text-white text-sm">
+                          <div className="font-mono font-bold text-slate-900 text-sm">
                             {exp.quantity.toLocaleString()} units
                           </div>
                           <div className="mt-1">
@@ -480,14 +480,14 @@ export default function Dashboard() {
               </div>
 
               {/* Current Stock Alerts Section */}
-              <div className="rounded-2xl border border-slate-800 bg-slate-800/40 p-6 backdrop-blur">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 backdrop-blur">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                       <TrendingDown className="h-5 w-5 text-rose-400" />
                       Current Stock Alerts
                     </h3>
-                    <p className="text-xs text-slate-400">Medicines below static reorder threshold (150 units)</p>
+                    <p className="text-xs text-slate-500">Medicines below static reorder threshold (150 units)</p>
                   </div>
                   <span className="text-xs px-2.5 py-1 rounded-full bg-rose-950/40 border border-rose-800/50 text-rose-300 font-semibold">
                     {data?.stock_alerts.length ?? 0} Alerts
@@ -501,14 +501,14 @@ export default function Dashboard() {
                     data.stock_alerts.map((stk, idx) => (
                       <div
                         key={`${stk.facility_id}-${stk.medicine_id}-${idx}`}
-                        className="p-3.5 rounded-xl border border-slate-800 bg-slate-900/60 flex items-center justify-between hover:border-slate-700 transition-colors"
+                        className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between hover:border-slate-200 transition-colors"
                       >
                         <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-semibold text-white">{stk.medicine_name}</span>
-                            <span className="text-xs text-slate-400">({stk.category})</span>
+                            <span className="font-semibold text-slate-900">{stk.medicine_name}</span>
+                            <span className="text-xs text-slate-500">({stk.category})</span>
                           </div>
-                          <p className="text-xs text-slate-400 mt-1">
+                          <p className="text-xs text-slate-500 mt-1">
                             📍 {stk.facility_name}
                           </p>
                         </div>
@@ -534,33 +534,33 @@ export default function Dashboard() {
           {/* VIEW 3: Category Distribution */}
           {activeTab === "categories" && (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-800/40 p-6 backdrop-blur">
-                <h3 className="text-lg font-bold text-white mb-1 flex items-center gap-2">
+              <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-slate-50 p-6 backdrop-blur">
+                <h3 className="text-lg font-bold text-slate-900 mb-1 flex items-center gap-2">
                   <PieChart className="h-5 w-5 text-emerald-400" />
                   Medicine Category Breakdown
                 </h3>
-                <p className="text-xs text-slate-400 mb-6">Stock unit distribution by therapeutic category across the district network</p>
+                <p className="text-xs text-slate-500 mb-6">Stock unit distribution by therapeutic category across the district network</p>
 
                 <div className="space-y-4">
                   {data?.category_distribution.map((cat) => {
                     const totalAll = data.kpis.total_inventory_units || 1;
                     const pct = Math.round((cat.total_units / totalAll) * 100);
                     return (
-                      <div key={cat.category} className="p-4 rounded-xl border border-slate-800 bg-slate-900/60">
+                      <div key={cat.category} className="p-4 rounded-xl border border-slate-200 bg-slate-50">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-semibold text-white">{cat.category}</span>
+                          <span className="font-semibold text-slate-900">{cat.category}</span>
                           <span className="font-mono text-sm font-bold text-emerald-400">
                             {cat.total_units.toLocaleString()} units ({pct}%)
                           </span>
                         </div>
                         {/* Progress bar */}
-                        <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
                           <div
                             className="bg-emerald-500 h-full rounded-full transition-all duration-500"
                             style={{ width: `${Math.max(pct, 4)}%` }}
                           />
                         </div>
-                        <div className="flex items-center justify-between text-xs text-slate-400 mt-2">
+                        <div className="flex items-center justify-between text-xs text-slate-500 mt-2">
                           <span>{cat.medicine_count} catalog medicines</span>
                           <span>{cat.batch_count} active batches</span>
                         </div>
@@ -571,33 +571,33 @@ export default function Dashboard() {
               </div>
 
               {/* Overview side panel */}
-              <div className="rounded-2xl border border-slate-800 bg-slate-800/40 p-6 backdrop-blur flex flex-col justify-between">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 backdrop-blur flex flex-col justify-between">
                 <div>
-                  <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-slate-900 mb-2 flex items-center gap-2">
                     <ShieldCheck className="h-5 w-5 text-emerald-400" />
                     Network Summary
                   </h3>
-                  <p className="text-xs text-slate-400 mb-6">Aggregate resilience status for Ahmedabad Rural</p>
+                  <p className="text-xs text-slate-500 mb-6">Aggregate resilience status for Ahmedabad Rural</p>
 
                   <div className="space-y-3">
-                    <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800">
-                      <span className="text-xs text-slate-400">Central Drug Warehouse</span>
-                      <p className="text-sm font-semibold text-white mt-1">Ahmedabad Central Store</p>
+                    <div className="p-3.5 rounded-xl bg-white border border-slate-200">
+                      <span className="text-xs text-slate-500">Central Drug Warehouse</span>
+                      <p className="text-sm font-semibold text-slate-900 mt-1">Ahmedabad Central Store</p>
                       <p className="text-xs text-emerald-400 mt-0.5">● Connected & Replenishing</p>
                     </div>
 
-                    <div className="p-3.5 rounded-xl bg-slate-900 border border-slate-800">
-                      <span className="text-xs text-slate-400">Critical Primary Health Centres</span>
-                      <p className="text-sm font-semibold text-white mt-1">PHC Sanand, PHC Rampura</p>
+                    <div className="p-3.5 rounded-xl bg-white border border-slate-200">
+                      <span className="text-xs text-slate-500">Critical Primary Health Centres</span>
+                      <p className="text-sm font-semibold text-slate-900 mt-1">PHC Sanand, PHC Rampura</p>
                       <p className="text-xs text-amber-400 mt-0.5">Low inventory buffer on Amoxicillin</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-slate-800">
+                <div className="mt-8 pt-6 border-t border-slate-200">
                   <Link
                     href="/inventory"
-                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold transition-colors"
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-900 text-sm font-semibold transition-colors"
                   >
                     <Boxes className="h-4 w-4" /> Manage Full Inventory
                   </Link>
@@ -608,14 +608,14 @@ export default function Dashboard() {
 
           {/* VIEW 4: Live Activity & Audit Feed */}
           {activeTab === "activity" && (
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/40 p-6 backdrop-blur">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6 backdrop-blur">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                     <History className="h-5 w-5 text-emerald-400" />
                     Live System Activity & Audit Trail
                   </h3>
-                  <p className="text-xs text-slate-400">Immutable ledger of inventory updates, consumption reports, and user actions</p>
+                  <p className="text-xs text-slate-500">Immutable ledger of inventory updates, consumption reports, and user actions</p>
                 </div>
               </div>
 
@@ -626,15 +626,15 @@ export default function Dashboard() {
                   data.recent_activity.map((act) => (
                     <div
                       key={act.id}
-                      className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-700 transition-colors"
+                      className="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-200 transition-colors"
                     >
                       <div className="flex items-start gap-3">
-                        <div className="mt-0.5 p-2 rounded-lg bg-slate-800 border border-slate-700 text-emerald-400">
+                        <div className="mt-0.5 p-2 rounded-lg bg-slate-100 border border-slate-200 text-emerald-400">
                           <Activity className="h-4 w-4" />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-white">{act.description}</p>
-                          <p className="text-xs text-slate-400 mt-0.5">
+                          <p className="text-sm font-semibold text-slate-900">{act.description}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">
                             By <strong>{act.actor_name}</strong> {act.facility_name ? `• 📍 ${act.facility_name}` : ""}
                           </p>
                         </div>

@@ -51,7 +51,7 @@ interface SubmitResponse {
 
 const COLUMNS = [
   { key: "medicine_name", label: "Medicine", type: "text", width: "min-w-[160px]", color: "text-white" },
-  { key: "batch_number", label: "Batch No.", type: "text", width: "min-w-[110px]", color: "text-slate-300" },
+  { key: "batch_number", label: "Batch No.", type: "text", width: "min-w-[110px]", color: "text-slate-600" },
   { key: "opening_stock", label: "Opening", type: "number", width: "min-w-[80px]", color: "text-blue-300" },
   { key: "received_stock", label: "Received", type: "number", width: "min-w-[80px]", color: "text-emerald-300" },
   { key: "consumed_stock", label: "Consumed", type: "number", width: "min-w-[80px]", color: "text-rose-300" },
@@ -151,9 +151,9 @@ export default function RegisterDigitisationPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-slate-900 text-slate-100 pb-16">
+      <main className="min-h-screen bg-white text-slate-900 pb-16">
         {/* Header */}
-        <div className="border-b border-slate-800 bg-slate-950/60 backdrop-blur px-4 sm:px-6 lg:px-8 py-6">
+        <div className="border-b border-slate-200 bg-white/95 backdrop-blur px-4 sm:px-6 lg:px-8 py-6">
           <div className="mx-auto max-w-7xl">
             <div className="flex items-center gap-2">
               <span className="flex h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping" />
@@ -161,11 +161,11 @@ export default function RegisterDigitisationPage() {
                 Phase 13 — Register Image Digitisation
               </p>
             </div>
-            <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-3">
+            <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
               <ScanLine className="h-7 w-7 text-amber-400" />
               Medicine Register Digitisation
             </h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-slate-500">
               Upload a scanned or photographed paper medicine register. AI extracts all stock data for human verification before saving.
             </p>
           </div>
@@ -182,8 +182,8 @@ export default function RegisterDigitisationPage() {
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
           {/* Step 1: Image Upload */}
-          <section className="rounded-2xl border border-slate-800 bg-slate-800/40 p-6 backdrop-blur space-y-4">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <section className="rounded-2xl border border-slate-200 bg-slate-50 p-6 backdrop-blur space-y-4">
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <ImageIcon className="h-5 w-5 text-amber-400" />
               1. Upload Register Image or Use Sample
             </h2>
@@ -193,10 +193,10 @@ export default function RegisterDigitisationPage() {
               <div className="space-y-4">
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-slate-700 hover:border-amber-500 rounded-xl p-8 text-center cursor-pointer transition-all"
+                  className="border-2 border-dashed border-slate-200 hover:border-amber-500 rounded-xl p-8 text-center cursor-pointer transition-all"
                 >
                   <Upload className="h-10 w-10 text-slate-500 mx-auto mb-3" />
-                  <p className="text-sm text-slate-400 font-medium">
+                  <p className="text-sm text-slate-500 font-medium">
                     Click to upload register photo / scan
                   </p>
                   <p className="text-xs text-slate-500 mt-1">JPEG, PNG, WebP — max 10MB</p>
@@ -226,7 +226,7 @@ export default function RegisterDigitisationPage() {
                 <button
                   onClick={handleExtract}
                   disabled={!previewUrl || loading}
-                  className="w-full px-4 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-white font-extrabold text-sm transition-all shadow-lg flex items-center justify-center gap-2"
+                  className="w-full px-4 py-3 rounded-xl bg-amber-600 hover:bg-amber-700 disabled:opacity-50 text-slate-900 font-extrabold text-sm transition-all shadow-lg flex items-center justify-center gap-2"
                 >
                   <Sparkles className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                   {loading ? "Extracting with Gemini Vision..." : "Extract Register Data"}
@@ -234,7 +234,7 @@ export default function RegisterDigitisationPage() {
               </div>
 
               {/* Right: Image Preview */}
-              <div className="rounded-xl overflow-hidden border border-slate-700 bg-slate-900 min-h-[240px] flex items-center justify-center">
+              <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-900 min-h-[240px] flex items-center justify-center">
                 {previewUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -254,15 +254,15 @@ export default function RegisterDigitisationPage() {
 
           {/* Step 2: Editable Verification Table */}
           {rows.length > 0 && (
-            <section className="rounded-2xl border border-amber-800 bg-slate-800/60 p-6 backdrop-blur space-y-4 shadow-xl">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-700/60 pb-4">
+            <section className="rounded-2xl border border-amber-800 bg-white p-6 backdrop-blur space-y-4 shadow-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-200 pb-4">
                 <div>
-                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                     <Edit3 className="h-5 w-5 text-amber-400" />
                     2. Human Verification — Editable Register Draft
                   </h2>
                   {pageDescription && (
-                    <p className="text-xs text-slate-400 mt-0.5">{pageDescription}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">{pageDescription}</p>
                   )}
                   <p className="text-xs text-amber-300 font-medium mt-1">
                     ⚠️ AI extractions must be reviewed before saving to live inventory database.
@@ -276,19 +276,19 @@ export default function RegisterDigitisationPage() {
               </div>
 
               {/* Scrollable Table */}
-              <div className="overflow-x-auto rounded-xl border border-slate-700">
+              <div className="overflow-x-auto rounded-xl border border-slate-200">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-slate-900/80">
                       {COLUMNS.map((col) => (
                         <th
                           key={col.key}
-                          className={`text-left px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 ${col.width}`}
+                          className={`text-left px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 ${col.width}`}
                         >
                           {col.label}
                         </th>
                       ))}
-                      <th className="text-left px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-400 min-w-[70px]">
+                      <th className="text-left px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 min-w-[70px]">
                         Confidence
                       </th>
                     </tr>
@@ -308,7 +308,7 @@ export default function RegisterDigitisationPage() {
                                   col.type === "number" ? parseInt(e.target.value) || 0 : e.target.value
                                 )
                               }
-                              className={`w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm font-mono font-bold ${col.color} focus:outline-hidden focus:border-amber-500`}
+                              className={`w-full bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm font-mono font-bold ${col.color} focus:outline-hidden focus:border-amber-500`}
                             />
                           </td>
                         ))}
@@ -332,13 +332,13 @@ export default function RegisterDigitisationPage() {
               </div>
 
               <div className="flex items-center justify-between pt-2">
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                   {rows.length} row(s) extracted — edit any field before saving.
                 </p>
                 <button
                   onClick={handleSubmit}
                   disabled={submitting}
-                  className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm transition-all shadow-lg shadow-emerald-950 flex items-center gap-2"
+                  className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-slate-900 font-extrabold text-sm transition-all shadow-lg shadow-emerald-950 flex items-center gap-2"
                 >
                   <Save className="h-4 w-4" />
                   {submitting ? "Reconciling Database..." : "Confirm & Save to Live Inventory"}

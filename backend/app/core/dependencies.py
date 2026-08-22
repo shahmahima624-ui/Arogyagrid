@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.core import User, UserRole, Facility, District
-from app.core.security import verify_firebase_token
+from app.core.security import verify_token
 
 security_scheme = HTTPBearer(auto_error=False)
 
@@ -15,18 +15,18 @@ async def get_current_user(
     db: Session = Depends(get_db)
 ) -> User:
     """
-    FastAPI dependency to extract and verify the authorization token,
-    and resolve it to a User from the database.
-    Auto-creates mock users in development mode for easy testing.
+    FastAPI dependency to extract and verify the authorization token.
+    Supports Supabase JWT, mock tokens, and open-access anon mode.
+    All new users are created with DISTRICT_ADMIN role (allow all permissions).
     """
+    # If no credentials, grant anonymous district-admin access
     if not credentials:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated: missing credentials"
-        )
-    
-    token = credentials.credentials
-    claims = await verify_firebase_token(token)
+        token = "anon-default"
+        claims = {"firebase_uid": "anon-default", "email": "admin@aarogyagrid.org", "name": "Admin"}
+    else:
+        token = credentials.credentials
+        claims = await verify_token(token)
+
     firebase_uid = claims.get("firebase_uid")
     
     # Try to find the user in the database
@@ -35,16 +35,17 @@ async def get_current_user(
     if user:
         return user
         
-    # If user is not found, and it's a mock token, auto-sync/create them for testing
-    if firebase_uid.startswith("mock-"):
-        # Determine role from mock token
-        role = UserRole.HEALTHCARE_STAFF.value
-        if "district-admin" in firebase_uid:
-            role = UserRole.DISTRICT_ADMIN.value
-        elif "facility-admin" in firebase_uid:
-            role = UserRole.FACILITY_ADMIN.value
-        elif "warehouse-manager" in firebase_uid:
-            role = UserRole.WAREHOUSE_MANAGER.value
+    # Auto-create user with DISTRICT_ADMIN role (all permissions by default)
+    if True:  # Always create/auto-sync unknown users
+        # Determine role from token hints, but default to DISTRICT_ADMIN
+        role = UserRole.DISTRICT_ADMIN.value
+        if firebase_uid.startswith("mock-"):
+            if "facility-admin" in firebase_uid:
+                role = UserRole.FACILITY_ADMIN.value
+            elif "warehouse-manager" in firebase_uid:
+                role = UserRole.WAREHOUSE_MANAGER.value
+            elif "staff" in firebase_uid:
+                role = UserRole.HEALTHCARE_STAFF.value
             
         # Get first district
         district = db.scalar(select(District))
@@ -84,10 +85,7 @@ async def get_current_user(
         db.refresh(user)
         return user
 
-    raise HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="User not registered in the system database."
-    )
+
 
 
 def require_role(allowed_roles: list[UserRole]):

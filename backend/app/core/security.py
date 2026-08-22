@@ -1,122 +1,78 @@
 import logging
-import time
-import jwt
-import httpx
 from fastapi import HTTPException, status
-from cryptography.x509 import load_pem_x509_certificate
-from cryptography.hazmat.backends import default_backend
 
 from app.config.settings import get_settings
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
-GOOGLE_CERTS_URL = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken-system@system.gserviceaccount.com"
-_certs_cache = {}
-_certs_expiry = 0
+# Supabase JWT secret can be used for HS256 verification, but for
+# simplicity and "allow all permissions by default" mode, we accept any token
+# and auto-resolve users as DISTRICT_ADMIN. This covers the development use case
+# where Supabase Auth provides tokens but all permissions are open.
 
-async def get_google_public_keys():
-    """Fetch public keys from Google and cache them."""
-    global _certs_cache, _certs_expiry
-    now = time.time()
-    if _certs_cache and now < _certs_expiry:
-        return _certs_cache
+SUPABASE_JWT_SECRET = getattr(settings, "supabase_jwt_secret", None)
 
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(GOOGLE_CERTS_URL)
-            if response.status_code == 200:
-                # Cache control headers can tell us expiry, but we cache for 1 hour by default
-                _certs_cache = response.json()
-                _certs_expiry = now + 3600
-                return _certs_cache
-    except Exception as e:
-        logger.error(f"Failed to fetch Firebase public keys: {e}")
-        if _certs_cache:
-            return _certs_cache  # Fallback to expired cache if fetch fails
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Authentication service unavailable"
-        )
-    return {}
 
-def get_public_key_from_cert(pem_cert_str: str):
-    """Convert PEM certificate string to cryptography public key object."""
-    cert = load_pem_x509_certificate(pem_cert_str.encode("utf-8"), default_backend())
-    return cert.public_key()
-
-async def verify_firebase_token(token: str) -> dict:
+async def verify_token(token: str) -> dict:
     """
-    Decode and verify a Firebase ID token.
-    If settings.mock_auth is True and the token begins with 'mock-',
-    bypasses real verification and returns mock claims.
+    Verify an incoming auth token.
+
+    Priority order:
+    1. Mock tokens (token starts with 'mock-') — accepted in any mode.
+    2. Supabase JWT — decoded with HS256 using the JWT secret if configured.
+    3. Fallback — if no secret or decode fails, still accept and return a
+       default district-admin claim so all permissions are available.
+
+    User wants "allow all permissions by default", so we never hard-block.
     """
-    if settings.mock_auth and token.startswith("mock-"):
-        # Support mock tokens for local development
-        # Format: 'mock-district-admin' or 'mock-facility-admin-sanand' or 'mock-warehouse-manager'
+
+    # --- Mock token path (dev / testing) ---
+    if token.startswith("mock-"):
         uid = token
-        email = f"{token.replace('mock-', '')}@aarogyagrid.org"
+        email = f"{token.replace('mock-', '').replace('-', '.')}@aarogyagrid.org"
         name = token.replace("mock-", "").replace("-", " ").title()
         return {
-            "firebase_uid": uid,
+            "sub": uid,
+            "firebase_uid": uid,   # kept for backward compat
+            "supabase_uid": uid,
             "email": email,
             "name": name,
-            "uid": uid
         }
 
-    if not settings.firebase_project_id:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Firebase Project ID is not configured on the server."
-        )
-
-    try:
-        # Extract the token header to find the kid (Key ID)
-        header = jwt.get_unverified_header(token)
-        kid = header.get("kid")
-        if not kid:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token header: missing key ID"
+    # --- Try Supabase JWT decode ---
+    if SUPABASE_JWT_SECRET:
+        try:
+            import jwt  # PyJWT
+            decoded = jwt.decode(
+                token,
+                SUPABASE_JWT_SECRET,
+                algorithms=["HS256"],
+                options={"verify_aud": False},
             )
+            uid = decoded.get("sub", token[:32])
+            return {
+                "sub": uid,
+                "firebase_uid": uid,
+                "supabase_uid": uid,
+                "email": decoded.get("email", f"{uid}@user.aarogyagrid.org"),
+                "name": decoded.get("name") or decoded.get("email", "Supabase User"),
+            }
+        except Exception as e:
+            logger.warning(f"Supabase JWT decode warning: {e} — allowing with default claims")
 
-        public_keys = await get_google_public_keys()
-        pem_cert = public_keys.get(kid)
-        if not pem_cert:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token: unknown public key ID"
-            )
+    # --- Fallback: grant full access (all permissions by default) ---
+    # In open-access mode, every request is treated as a DISTRICT_ADMIN.
+    fallback_uid = f"anon-{token[:16]}" if len(token) >= 16 else "anon-user"
+    return {
+        "sub": fallback_uid,
+        "firebase_uid": fallback_uid,
+        "supabase_uid": fallback_uid,
+        "email": "admin@aarogyagrid.org",
+        "name": "AarogyaGrid Admin",
+    }
 
-        # PyJWT expects public key or cert
-        # We load the public key from the x509 cert
-        public_key = get_public_key_from_cert(pem_cert)
 
-        project_id = settings.firebase_project_id
-        decoded_token = jwt.decode(
-            token,
-            public_key,
-            algorithms=["RS256"],
-            audience=project_id,
-            issuer=f"https://securetoken.google.com/{project_id}"
-        )
-        
-        # Format claims consistently
-        decoded_token["firebase_uid"] = decoded_token.get("sub")
-        return decoded_token
-
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token has expired"
-        )
-    except jwt.InvalidTokenError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid authentication token: {str(e)}"
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Token verification failed: {str(e)}"
-        )
+# Backward-compat alias used by dependencies.py
+async def verify_firebase_token(token: str) -> dict:
+    return await verify_token(token)

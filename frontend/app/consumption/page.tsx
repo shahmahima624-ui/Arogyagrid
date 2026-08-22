@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Nav } from "../../components/nav";
 import { api } from "../../lib/api";
 
-type Record = {
+type ConsumptionRecord = {
   id: string;
   facility_id: string;
   medicine_id: string;
@@ -14,12 +14,13 @@ type Record = {
 };
 type Named = { id: string; name: string };
 
+
 export default function ConsumptionPage() {
-  const [records, setRecords] = useState<Record[]>([]);
+  const [records, setRecords] = useState<ConsumptionRecord[]>([]);
   const [facilities, setFacilities] = useState<Named[]>([]);
   const [medicines, setMedicines] = useState<Named[]>([]);
   const [message, setMessage] = useState("");
-  const load = () => api<Record[]>("/consumption").then(setRecords);
+  const load = () => api<ConsumptionRecord[]>("/consumption").then(setRecords);
   useEffect(() => {
     load();
     api<Named[]>("/facilities").then(setFacilities);

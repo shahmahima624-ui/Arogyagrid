@@ -356,9 +356,9 @@ export default function ForecastsPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-slate-900 text-slate-100 pb-20">
+      <main className="min-h-screen bg-white text-slate-900 pb-20">
         {/* Top Header Banner */}
-        <div className="border-b border-slate-800 bg-slate-950/70 backdrop-blur px-4 sm:px-6 lg:px-8 py-6">
+        <div className="border-b border-slate-200 bg-slate-50/70 backdrop-blur px-4 sm:px-6 lg:px-8 py-6">
           <div className="mx-auto max-w-7xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
@@ -367,11 +367,11 @@ export default function ForecastsPage() {
                   Predictive Intelligence Engine (Phase 5)
                 </p>
                 <span className="text-slate-500">•</span>
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-500">
                   Model: GradientBoostingRegressor + Autoregressive Horizon
                 </span>
               </div>
-              <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
+              <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
                 Demand Forecasting & Consumption Trajectory
               </h1>
             </div>
@@ -406,26 +406,26 @@ export default function ForecastsPage() {
 
           {/* 4 Hero KPI Cards */}
           <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/60 p-5 backdrop-blur shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 backdrop-blur shadow-sm">
               <div className="flex items-center justify-between text-cyan-300">
                 <span className="text-xs font-semibold uppercase tracking-wider">14-Day District Demand</span>
                 <TrendingUp className="h-5 w-5 text-cyan-400" />
               </div>
-              <p className="mt-3 text-3xl font-black text-white">
+              <p className="mt-3 text-3xl font-black text-slate-900">
                 {loading ? "..." : metricsOverview.total14d.toLocaleString()}
               </p>
-              <p className="mt-1 text-xs text-slate-400">Total Projected Consumption Units</p>
+              <p className="mt-1 text-xs text-slate-500">Total Projected Consumption Units</p>
             </div>
 
-            <div className="rounded-2xl border border-slate-800 bg-slate-800/60 p-5 backdrop-blur shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 backdrop-blur shadow-sm">
               <div className="flex items-center justify-between text-emerald-300">
                 <span className="text-xs font-semibold uppercase tracking-wider">Top Demand Medicine</span>
                 <Boxes className="h-5 w-5 text-emerald-400" />
               </div>
-              <p className="mt-3 text-xl font-bold text-white truncate" title={metricsOverview.topMed}>
+              <p className="mt-3 text-xl font-bold text-slate-900 truncate" title={metricsOverview.topMed}>
                 {loading ? "..." : metricsOverview.topMed}
               </p>
-              <p className="mt-1 text-xs text-slate-400">Highest Volume Consumption</p>
+              <p className="mt-1 text-xs text-slate-500">Highest Volume Consumption</p>
             </div>
 
             <div className="rounded-2xl border border-purple-900/50 bg-purple-950/20 p-5 backdrop-blur shadow-sm ring-1 ring-purple-500/20">
@@ -452,19 +452,19 @@ export default function ForecastsPage() {
           </section>
 
           {/* INTERACTIVE VISUALIZER SECTION */}
-          <section className="rounded-3xl border border-slate-800 bg-slate-900/90 backdrop-blur-xl p-6 sm:p-8 shadow-xl mb-10">
+          <section className="rounded-3xl border border-slate-200 bg-slate-900/90 backdrop-blur-xl p-6 sm:p-8 shadow-xl mb-10">
             {/* Visualizer Controls */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-800">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-slate-200">
               <div className="flex flex-wrap items-center gap-3">
                 {/* Facility Selector */}
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                     Facility Node
                   </label>
                   <select
                     value={selectedFacilityId}
                     onChange={(e) => setSelectedFacilityId(e.target.value)}
-                    className="bg-slate-800 border border-slate-700 text-sm font-semibold rounded-xl px-3.5 py-2 text-white focus:outline-hidden focus:border-cyan-500"
+                    className="bg-slate-100 border border-slate-200 text-sm font-semibold rounded-xl px-3.5 py-2 text-slate-900 focus:outline-hidden focus:border-cyan-500"
                   >
                     {facilities.map((fac) => (
                       <option key={fac.id} value={fac.id}>
@@ -476,13 +476,13 @@ export default function ForecastsPage() {
 
                 {/* Medicine Selector */}
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                     Medicine / Drug
                   </label>
                   <select
                     value={selectedMedicineId}
                     onChange={(e) => setSelectedMedicineId(e.target.value)}
-                    className="bg-slate-800 border border-slate-700 text-sm font-semibold rounded-xl px-3.5 py-2 text-white focus:outline-hidden focus:border-cyan-500 max-w-[240px]"
+                    className="bg-slate-100 border border-slate-200 text-sm font-semibold rounded-xl px-3.5 py-2 text-slate-900 focus:outline-hidden focus:border-cyan-500 max-w-[240px]"
                   >
                     {medicines.map((med) => (
                       <option key={med.id} value={med.id}>
@@ -495,8 +495,8 @@ export default function ForecastsPage() {
 
               {/* Horizon Selector */}
               <div className="flex items-center gap-2 self-start lg:self-auto">
-                <span className="text-xs font-semibold text-slate-400">Forecast Horizon:</span>
-                <div className="flex bg-slate-800 p-1 rounded-xl border border-slate-700">
+                <span className="text-xs font-semibold text-slate-500">Forecast Horizon:</span>
+                <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
                   {[7, 14, 30].map((days) => (
                     <button
                       key={days}
@@ -504,7 +504,7 @@ export default function ForecastsPage() {
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                         horizonDays === days
                           ? "bg-cyan-500 text-slate-950 shadow-xs"
-                          : "text-slate-400 hover:text-slate-200"
+                          : "text-slate-500 hover:text-slate-700"
                       }`}
                     >
                       {days} Days
@@ -517,14 +517,14 @@ export default function ForecastsPage() {
             {/* Time Series Chart & Performance Stats */}
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
               {/* Left 3 cols: Time Series SVG Chart */}
-              <div className="lg:col-span-3 bg-slate-950/80 rounded-2xl border border-slate-800/80 p-5">
+              <div className="lg:col-span-3 bg-slate-50/80 rounded-2xl border border-slate-200/80 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                   <div>
-                    <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                       <LineChart className="h-4 w-4 text-cyan-400" />
                       Historical Consumption & Predictive Trajectory
                     </h3>
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="text-xs text-slate-500 mt-0.5">
                       Empirical daily dispensing + {horizonDays}-day ML predicted demand with 95% confidence interval
                     </p>
                   </div>
@@ -533,11 +533,11 @@ export default function ForecastsPage() {
                   <div className="flex flex-wrap items-center gap-4 text-xs">
                     <div className="flex items-center gap-1.5">
                       <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-                      <span className="text-slate-300">Historical Actuals</span>
+                      <span className="text-slate-600">Historical Actuals</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="h-2 w-4 bg-blue-400 rounded-sm" />
-                      <span className="text-slate-300">7d Rolling Avg</span>
+                      <span className="text-slate-600">7d Rolling Avg</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="h-2 w-4 border-b-2 border-dashed border-cyan-400" />
@@ -545,7 +545,7 @@ export default function ForecastsPage() {
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="h-2.5 w-3 bg-cyan-400/20 border border-cyan-400/40 rounded-xs" />
-                      <span className="text-slate-400">95% CI</span>
+                      <span className="text-slate-500">95% CI</span>
                     </div>
                   </div>
                 </div>
@@ -732,50 +732,50 @@ export default function ForecastsPage() {
               </div>
 
               {/* Right 1 col: Live Model Evaluation Card */}
-              <div className="bg-slate-950/80 rounded-2xl border border-slate-800/80 p-5 space-y-4">
+              <div className="bg-slate-50/80 rounded-2xl border border-slate-200/80 p-5 space-y-4">
                 <div>
                   <span className="text-[10px] font-bold tracking-wider uppercase text-cyan-400 px-2 py-0.5 rounded-full bg-cyan-950/60 border border-cyan-800">
                     Live Model Evaluation
                   </span>
-                  <h4 className="text-base font-extrabold text-white mt-2">
+                  <h4 className="text-base font-extrabold text-slate-900 mt-2">
                     {detail?.metrics.model_name ?? "GradientBoostingRegressor"}
                   </h4>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-slate-500">
                     Trained on {detail?.metrics.sample_count ?? 0} historical daily time steps
                   </p>
                 </div>
 
-                <div className="space-y-2.5 pt-2 border-t border-slate-800">
+                <div className="space-y-2.5 pt-2 border-t border-slate-200">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Mean Absolute Error (MAE):</span>
-                    <span className="font-mono font-bold text-white">
+                    <span className="text-slate-500">Mean Absolute Error (MAE):</span>
+                    <span className="font-mono font-bold text-slate-900">
                       {detail?.metrics.mae ?? "—"} units/day
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Root Mean Sq Error (RMSE):</span>
-                    <span className="font-mono font-bold text-white">
+                    <span className="text-slate-500">Root Mean Sq Error (RMSE):</span>
+                    <span className="font-mono font-bold text-slate-900">
                       {detail?.metrics.rmse ?? "—"}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Test Split Error (MAPE):</span>
+                    <span className="text-slate-500">Test Split Error (MAPE):</span>
                     <span className="font-mono font-bold text-purple-400">
                       {detail?.metrics.mape ?? "—"}%
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Predicted Daily Demand:</span>
+                    <span className="text-slate-500">Predicted Daily Demand:</span>
                     <span className="font-mono font-bold text-emerald-400">
                       {detail?.predicted_daily_demand ?? "—"} units
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Confidence Rating:</span>
+                    <span className="text-slate-500">Confidence Rating:</span>
                     <span className="font-bold text-cyan-400">
                       {detail ? `${Math.round(detail.confidence_score * 100)}%` : "—"}
                     </span>
@@ -783,13 +783,13 @@ export default function ForecastsPage() {
                 </div>
 
                 {/* Stockout status callout */}
-                <div className="pt-3 border-t border-slate-800">
-                  <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-                    <div className="text-[11px] text-slate-400">Current Facility Stock:</div>
-                    <div className="text-lg font-black text-white font-mono mt-0.5">
+                <div className="pt-3 border-t border-slate-200">
+                  <div className="p-3 rounded-xl bg-white border border-slate-200">
+                    <div className="text-[11px] text-slate-500">Current Facility Stock:</div>
+                    <div className="text-lg font-black text-slate-900 font-mono mt-0.5">
                       {detail?.current_stock.toLocaleString() ?? 0} units
                     </div>
-                    <div className="text-xs text-slate-400 mt-1">
+                    <div className="text-xs text-slate-500 mt-1">
                       Estimated runway:{" "}
                       <strong className="text-cyan-400">
                         {detail && detail.predicted_daily_demand > 0
@@ -805,7 +805,7 @@ export default function ForecastsPage() {
 
           {/* DEMAND FORECAST SUMMARY MATRIX TABLE */}
           <section className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-slate-800/40 p-4 rounded-2xl border border-slate-800">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-200">
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
                 <input
@@ -813,17 +813,17 @@ export default function ForecastsPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search medicine or facility name..."
-                  className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-900 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-hidden focus:border-cyan-500"
+                  className="w-full pl-9 pr-4 py-2 rounded-xl bg-white border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-hidden focus:border-cyan-500"
                 />
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-slate-400" />
+                  <Filter className="h-4 w-4 text-slate-500" />
                   <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="bg-slate-900 border border-slate-700 text-sm rounded-xl px-3 py-2 text-slate-200 focus:outline-hidden focus:border-cyan-500"
+                    className="bg-white border border-slate-200 text-sm rounded-xl px-3 py-2 text-slate-700 focus:outline-hidden focus:border-cyan-500"
                   >
                     <option value="ALL">All Categories</option>
                     {categories.map((c) => (
@@ -834,12 +834,12 @@ export default function ForecastsPage() {
                   </select>
                 </div>
 
-                <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 cursor-pointer bg-slate-900 border border-slate-700 px-3 py-2 rounded-xl">
+                <label className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer bg-white border border-slate-200 px-3 py-2 rounded-xl">
                   <input
                     type="checkbox"
                     checked={stockoutRiskOnly}
                     onChange={(e) => setStockoutRiskOnly(e.target.checked)}
-                    className="rounded-sm bg-slate-800 border-slate-700 text-cyan-500 focus:ring-0"
+                    className="rounded-sm bg-slate-100 border-slate-200 text-cyan-500 focus:ring-0"
                   />
                   <span>Stockout Risk &lt; 14d</span>
                 </label>
@@ -847,10 +847,10 @@ export default function ForecastsPage() {
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-800/40 backdrop-blur shadow-sm">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-slate-50 backdrop-blur shadow-sm">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 text-xs font-bold uppercase tracking-wider text-slate-400 bg-slate-900/60">
+                  <tr className="border-b border-slate-200 text-xs font-bold uppercase tracking-wider text-slate-500 bg-slate-50">
                     <th className="px-6 py-4">Facility & Medicine</th>
                     <th className="px-6 py-4">Category</th>
                     <th className="px-6 py-4">Current Stock</th>
@@ -881,26 +881,26 @@ export default function ForecastsPage() {
                       return (
                         <tr
                           key={`${item.facility_id}-${item.medicine_id}-${idx}`}
-                          className="hover:bg-slate-700/20 transition-colors"
+                          className="hover:bg-slate-50 transition-colors"
                         >
                           <td className="px-6 py-4">
-                            <div className="font-semibold text-white">{item.medicine_name}</div>
-                            <span className="text-xs text-slate-400 flex items-center gap-1 mt-0.5">
+                            <div className="font-semibold text-slate-900">{item.medicine_name}</div>
+                            <span className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
                               <Building2 className="h-3 w-3 text-emerald-400" />
                               {item.facility_name}
                             </span>
                           </td>
-                          <td className="px-6 py-4 text-slate-300">{item.category}</td>
-                          <td className="px-6 py-4 font-mono font-semibold text-slate-200">
+                          <td className="px-6 py-4 text-slate-600">{item.category}</td>
+                          <td className="px-6 py-4 font-mono font-semibold text-slate-700">
                             {item.current_stock.toLocaleString()} units
                           </td>
                           <td className="px-6 py-4 font-mono text-cyan-300 font-bold">
                             {item.predicted_daily_demand} /day
                           </td>
-                          <td className="px-6 py-4 font-mono text-slate-300">
+                          <td className="px-6 py-4 font-mono text-slate-600">
                             {item.predicted_7d_demand}
                           </td>
-                          <td className="px-6 py-4 font-mono text-slate-300">
+                          <td className="px-6 py-4 font-mono text-slate-600">
                             {item.predicted_14d_demand}
                           </td>
                           <td className="px-6 py-4">
@@ -922,7 +922,7 @@ export default function ForecastsPage() {
                             )}
                           </td>
                           <td className="px-6 py-4">
-                            <span className="inline-block text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-cyan-300">
+                            <span className="inline-block text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-cyan-300">
                               {Math.round(item.confidence_score * 100)}%
                             </span>
                           </td>
