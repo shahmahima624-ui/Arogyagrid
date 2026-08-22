@@ -135,9 +135,12 @@ def train_and_forecast_item(
     valid_df = feature_df.dropna().reset_index(drop=True)
 
     model_name = "GradientBoostingRegressor"
-    mae, rmse, mape = 2.5, 3.2, 12.0
-    r2_score = 0.85
+    mae: float | None = None
+    rmse: float | None = None
+    mape: float | None = None
+    r2_score: float | None = None
     residual_std = 3.0
+    evaluation_available = True
 
     if len(valid_df) >= 20 and avg_historical > 0:
         X = valid_df[feature_cols].values
@@ -172,12 +175,11 @@ def train_and_forecast_item(
         model.fit(X, y)
     else:
         # Fallback to Exponential Moving Average
+        # Not enough data for held-out evaluation — metrics not fabricated.
         model_name = "ExponentialMovingAverage"
-        mae = round(max(1.0, avg_historical * 0.12), 2)
-        rmse = round(max(1.5, avg_historical * 0.18), 2)
-        mape = 14.5
-        r2_score = 0.0
-        residual_std = max(1.5, avg_historical * 0.15)
+        evaluation_available = False
+        # residual_std still used for uncertainty bands during forecasting
+        residual_std = max(1.5, avg_historical * 0.15) if avg_historical > 0 else 3.0
 
     # 3. Autoregressive Horizon Forecasting
     forecast_points: list[ForecastPoint] = []
@@ -242,8 +244,12 @@ def train_and_forecast_item(
     pred_14d = sum(p.predicted_quantity for p in forecast_points[:14])
     pred_30d = pred_daily_avg * 30
 
-    # Confidence score (0.0 to 1.0) derived from MAPE and sample size
-    confidence = max(0.60, min(0.98, round(1.0 - (mape / 100.0) * 0.5, 2)))
+    # Confidence score: derived from MAPE when evaluation is available
+    # For EMA/insufficient data: cap at 0.65 (low data confidence)
+    if evaluation_available and mape is not None:
+        confidence = max(0.60, min(0.98, round(1.0 - (mape / 100.0) * 0.5, 2)))
+    else:
+        confidence = 0.60  # LOW DATA CONFIDENCE — insufficient history
 
     # Stockout risk in days
     days_to_stockout = None
@@ -254,10 +260,11 @@ def train_and_forecast_item(
 
     metrics = ModelEvaluationMetrics(
         model_name=model_name,
-        mae=round(mae, 2),
-        rmse=round(rmse, 2),
-        mape=round(mape, 1),
-        r2_score=round(r2_score, 2),
+        evaluation_available=evaluation_available,
+        mae=round(mae, 2) if mae is not None else None,
+        rmse=round(rmse, 2) if rmse is not None else None,
+        mape=round(mape, 1) if mape is not None else None,
+        r2_score=round(r2_score, 2) if r2_score is not None else None,
         sample_count=len(df),
         training_date=now_utc,
     )
@@ -276,7 +283,7 @@ def train_and_forecast_item(
         predicted_30d_demand=round(pred_30d, 1),
         confidence_score=confidence,
         model_name=model_name,
-        mape=round(mape, 1),
+        mape=round(mape, 1) if mape is not None else None,
         days_to_stockout=days_to_stockout,
     )
 

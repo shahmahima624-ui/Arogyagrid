@@ -27,14 +27,11 @@ from app.models.core import (
 from app.schemas.redistribution import ScoreBreakdown
 from app.services.risk_engine import compute_risk_for_facility_medicine
 from app.services.forecasting import extract_time_series
+from app.services.safety_service import calculate_safe_surplus, SAFETY_STOCK_DAYS
 
 # ─── constants ────────────────────────────────────────────────────────────────
 
-SAFETY_STOCK_DAYS: dict[str, int] = {
-    "PHC": 3,
-    "CHC": 5,
-    "DISTRICT_HOSPITAL": 7,
-}
+# SAFETY_STOCK_DAYS imported from safety_service (single source of truth)
 
 # Distance beyond which the penalty saturates at 1.0 (100 km)
 MAX_DISTANCE_KM = 100.0
@@ -71,37 +68,19 @@ def _daily_demand(db: Session, facility_id: uuid.UUID, medicine_id: uuid.UUID) -
     return float(series.mean()) if not series.empty else 0.0
 
 
-# ─── Safe surplus calculator ───────────────────────────────────────────────────
+# ─── Safe surplus (delegates to centralized safety_service) ──────────────────
 
 def _safe_surplus(
     db: Session,
     facility: Facility,
     medicine_id: uuid.UUID,
-    days_horizon: int = 30,
 ) -> int:
     """
-    safe_surplus = source_stock - predicted_source_requirement - source_safety_stock
-
-    source_stock               : sum of unexpired batch quantities
-    predicted_source_requirement : daily_demand × days_horizon
-    source_safety_stock        : daily_demand × SAFETY_STOCK_DAYS[facility_type]
+    Delegates to the centralized calculate_safe_surplus function.
+    Returns integer safe_surplus units (>= 0).
     """
-    today = date.today()
-    batches = db.scalars(
-        select(InventoryBatch).where(
-            InventoryBatch.facility_id == facility.id,
-            InventoryBatch.medicine_id == medicine_id,
-            InventoryBatch.expiry_date >= today,
-            InventoryBatch.quantity > 0,
-        )
-    ).all()
-    total_stock = sum(b.quantity for b in batches)
-
-    demand = _daily_demand(db, facility.id, medicine_id)
-    safety_days = SAFETY_STOCK_DAYS.get(facility.facility_type, 3)
-    required = demand * (days_horizon + safety_days)
-    surplus = max(0, int(total_stock - required))
-    return surplus
+    result = calculate_safe_surplus(db, facility.id, medicine_id)
+    return result.safe_surplus
 
 
 def _warehouse_surplus(db: Session, warehouse: Warehouse, medicine_id: uuid.UUID) -> int:

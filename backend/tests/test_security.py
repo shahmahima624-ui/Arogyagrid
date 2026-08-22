@@ -97,11 +97,12 @@ def test_s4_facility_a_cannot_access_facility_b_transfer():
         quantity=10,
         user=user_admin,
     )
+    transfer_id = str(transfer.id)  # capture ID before closing session
     db.close()
 
     client = TestClient(app)
     headers = {"Authorization": "Bearer mock-facility-admin-sanand"}
-    res = client.get(f"/api/transfers/{transfer.id}", headers=headers)
+    res = client.get(f"/api/transfers/{transfer_id}", headers=headers)
     assert res.status_code == 403
     assert "Transfer does not involve your assigned facility" in res.json()["detail"]
 
@@ -122,11 +123,12 @@ def test_s5_staff_user_cannot_approve_transfer():
         quantity=10,
         user=admin_user,
     )
+    transfer_id = str(transfer.id)  # capture ID before closing session
     db.close()
 
     client = TestClient(app)
     headers = {"Authorization": "Bearer mock-staff-sanand"}
-    res = client.post(f"/api/transfers/{transfer.id}/approve", headers=headers)
+    res = client.post(f"/api/transfers/{transfer_id}/approve", headers=headers)
     assert res.status_code == 403
 
 
@@ -148,14 +150,15 @@ def test_s6_duplicate_receive_returns_409_conflict():
     )
     transfer_service.approve_transfer(db, transfer.id, admin_user)
     transfer_service.dispatch_transfer(db, transfer.id, admin_user)
+    transfer_id = str(transfer.id)  # capture ID before closing session
     db.close()
 
     client = TestClient(app)
     headers = {"Authorization": "Bearer mock-district-admin"}
-    res1 = client.post(f"/api/transfers/{transfer.id}/receive", headers=headers)
+    res1 = client.post(f"/api/transfers/{transfer_id}/receive", headers=headers)
     assert res1.status_code == 200
 
-    res2 = client.post(f"/api/transfers/{transfer.id}/receive", headers=headers)
+    res2 = client.post(f"/api/transfers/{transfer_id}/receive", headers=headers)
     assert res2.status_code == 409
     assert "already been received" in res2.json()["detail"]
 
@@ -176,9 +179,10 @@ def test_s7_tracking_number_format():
         quantity=5,
         user=admin_user,
     )
+    tracking_number = transfer.tracking_number  # capture before closing session
     db.close()
 
-    assert transfer.tracking_number.startswith("TRF-202")
-    parts = transfer.tracking_number.split("-")
+    assert tracking_number.startswith("TRF-202")
+    parts = tracking_number.split("-")
     assert len(parts) == 3
     assert len(parts[1]) == 8

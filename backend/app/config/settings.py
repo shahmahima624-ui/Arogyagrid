@@ -25,6 +25,12 @@ class Settings(BaseSettings):
         validation_alias="SECRET_KEY",
     )
     supabase_jwt_secret: str | None = Field(default=None, validation_alias="SUPABASE_JWT_SECRET")
+    # Supabase JWT claim validation
+    # Audience: Supabase sets this to 'authenticated' for user tokens.
+    # Set SUPABASE_JWT_AUDIENCE=authenticated in production.
+    supabase_jwt_audience: str | None = Field(default=None, validation_alias="SUPABASE_JWT_AUDIENCE")
+    # Issuer: Set to your Supabase project URL e.g. https://<ref>.supabase.co/auth/v1
+    supabase_jwt_issuer: str | None = Field(default=None, validation_alias="SUPABASE_JWT_ISSUER")
     gemini_api_key: str | None = Field(
         default=None,
         validation_alias="GEMINI_API_KEY",
@@ -41,6 +47,11 @@ class Settings(BaseSettings):
                 raise ValueError("Security Violation: MOCK_AUTH cannot be enabled when ENVIRONMENT=production")
             if self.secret_key == "aarogyagrid-super-secret-key-change-in-production":
                 raise ValueError("Security Violation: SECRET_KEY must be changed in production")
+            if not self.supabase_jwt_secret:
+                raise ValueError(
+                    "Security Violation: SUPABASE_JWT_SECRET must be set when ENVIRONMENT=production. "
+                    "Generic SECRET_KEY must not be used as a JWT auth fallback in production."
+                )
         return self
 
     @property

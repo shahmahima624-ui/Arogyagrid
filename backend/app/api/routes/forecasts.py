@@ -148,8 +148,11 @@ def generate_forecasts(
             mapes.append(summary.mape)
             maes.append(detail.metrics.mae)
 
-    avg_mape = round(float(sum(mapes) / max(len(mapes), 1)), 1)
-    avg_mae = round(float(sum(maes) / max(len(maes), 1)), 2)
+    # Filter out None values — EMA fallback path returns null metrics
+    valid_mapes = [m for m in mapes if m is not None]
+    valid_maes = [m for m in maes if m is not None]
+    avg_mape = round(float(sum(valid_mapes) / max(len(valid_mapes), 1)), 1) if valid_mapes else 0.0
+    avg_mae = round(float(sum(valid_maes) / max(len(valid_maes), 1)), 2) if valid_maes else 0.0
 
     return GenerateForecastResponse(
         status="SUCCESS",

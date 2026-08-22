@@ -19,9 +19,10 @@ class ForecastPoint(BaseModel):
 
 class ModelEvaluationMetrics(BaseModel):
     model_name: str
-    mae: float  # Mean Absolute Error
-    rmse: float  # Root Mean Squared Error
-    mape: float  # Mean Absolute Percentage Error (%)
+    evaluation_available: bool = True  # False when insufficient data for held-out evaluation
+    mae: float | None = None           # Mean Absolute Error
+    rmse: float | None = None          # Root Mean Squared Error
+    mape: float | None = None          # Mean Absolute Percentage Error (%)
     r2_score: float | None = None
     sample_count: int
     training_date: datetime
@@ -55,7 +56,7 @@ class MedicineForecastSummary(BaseModel):
     predicted_30d_demand: float
     confidence_score: float
     model_name: str
-    mape: float
+    mape: float | None = None
     days_to_stockout: float | None = None
 
 
