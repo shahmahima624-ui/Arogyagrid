@@ -11,6 +11,6 @@ router = APIRouter()
 @router.get("/stream")
 def stream_realtime_events():
     """
-    Server-Sent Events (SSE) stream endpoint pushing live alerts (critical stockouts, cold-chain breaches) to frontend clients.
+    Server-Sent Events (SSE) stream endpoint pushing public, non-sensitive system telemetry and heartbeat status to frontend clients.
     """
     return StreamingResponse(event_generator(), media_type="text/event-stream")

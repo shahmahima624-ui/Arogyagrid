@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime, timezone
 from collections import defaultdict
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select, func, desc
 from sqlalchemy.orm import Session
 
@@ -44,7 +44,7 @@ def get_command_center_overview(
     today = date.today()
     now = datetime.now(timezone.utc)
 
-    # Apply role scoping
+    # Apply strict role scoping
     effective_facility_id = facility_id
     effective_district_id = district_id
 
@@ -52,10 +52,47 @@ def get_command_center_overview(
         effective_facility_id = current_user.facility_id
         if current_user.facility_id:
             user_facility = db.get(Facility, current_user.facility_id)
-            if user_facility:
-                effective_district_id = user_facility.district_id
-    elif current_user.role == UserRole.DISTRICT_ADMIN and current_user.district_id:
+            effective_district_id = user_facility.district_id if user_facility else current_user.district_id
+        else:
+            effective_district_id = current_user.district_id
+
+        if facility_id and effective_facility_id and facility_id != effective_facility_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: Cannot access dashboard outside your assigned facility",
+            )
+        if district_id and effective_district_id and district_id != effective_district_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: Cannot access dashboard outside your assigned district",
+            )
+
+    elif current_user.role == UserRole.WAREHOUSE_MANAGER:
+        effective_facility_id = None
         effective_district_id = current_user.district_id
+        if district_id and effective_district_id and district_id != effective_district_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: Cannot access dashboard outside your assigned district",
+            )
+
+    elif current_user.role == UserRole.DISTRICT_ADMIN:
+        effective_district_id = current_user.district_id
+        if district_id and current_user.district_id and district_id != current_user.district_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: Cannot access dashboard outside your assigned district",
+            )
+        if facility_id and effective_district_id:
+            fac_obj = db.get(Facility, facility_id)
+            if fac_obj and fac_obj.district_id != effective_district_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: Facility is outside your assigned district",
+                )
+    else:
+        effective_facility_id = facility_id
+        effective_district_id = current_user.district_id or district_id
 
     # 1. Fetch facilities
     fac_query = select(Facility).join(District, Facility.district_id == District.id)
@@ -159,7 +196,7 @@ def get_command_center_overview(
             if curr_stock < reorder_lvl:
                 low_stock_items_count += 1
                 facility_low_stock_count[fac.id] += 1
-                status = "OUT_OF_STOCK" if curr_stock == 0 else "LOW_STOCK"
+                stock_status = "OUT_OF_STOCK" if curr_stock == 0 else "LOW_STOCK"
 
                 # Include in stock alerts list (limit per facility or sorted)
                 stock_alerts.append(
@@ -171,7 +208,7 @@ def get_command_center_overview(
                         category=med.category,
                         current_stock=curr_stock,
                         reorder_level=reorder_lvl,
-                        status=status,
+                        status=stock_status,
                     )
                 )
 
@@ -187,12 +224,12 @@ def get_command_center_overview(
         tot_stock = facility_total_units[fac.id]
 
         if low_count >= 3 or tot_stock < 500:
-            status = "CRITICAL"
+            health_status = "CRITICAL"
             critical_facilities_count += 1
         elif low_count >= 1 or exp_count >= 1:
-            status = "WARNING"
+            health_status = "WARNING"
         else:
-            status = "NORMAL"
+            health_status = "NORMAL"
 
         district_name = district_map.get(fac.district_id, "District")
 
@@ -205,7 +242,7 @@ def get_command_center_overview(
                 total_stock=tot_stock,
                 low_stock_count=low_count,
                 expiring_count=exp_count,
-                status=status,
+                status=health_status,
                 last_consumption_date=None,
             )
         )
@@ -239,9 +276,23 @@ def get_command_center_overview(
     # Recent Activity Feed (combining AuditLog and recent Consumption)
     activity_items: list[ActivityFeedItem] = []
 
-    # Get recent audit logs
+    # Permitted facility IDs
+    allowed_fac_ids = [f.id for f in facilities]
+
+    # Scoped Audit Logs Query
+    audit_query = select(AuditLog)
+    if effective_facility_id:
+        audit_query = audit_query.where(AuditLog.facility_id == effective_facility_id)
+    elif effective_district_id:
+        district_users = db.scalars(select(User.id).where(User.district_id == effective_district_id)).all()
+        audit_query = audit_query.where(
+            (AuditLog.facility_id.in_(allowed_fac_ids)) | (AuditLog.user_id.in_(district_users))
+        )
+    elif allowed_fac_ids:
+        audit_query = audit_query.where(AuditLog.facility_id.in_(allowed_fac_ids))
+
     audit_logs = db.scalars(
-        select(AuditLog).order_by(desc(AuditLog.timestamp)).limit(15)
+        audit_query.order_by(desc(AuditLog.timestamp)).limit(15)
     ).all()
 
     user_ids = {a.user_id for a in audit_logs if a.user_id}
@@ -261,10 +312,18 @@ def get_command_center_overview(
             )
         )
 
-    # If audit logs are few, fetch recent consumption records
+    # If audit logs are few, fetch recent scoped consumption records
     if len(activity_items) < 5:
+        cons_query = select(ConsumptionRecord)
+        if effective_facility_id:
+            cons_query = cons_query.where(ConsumptionRecord.facility_id == effective_facility_id)
+        elif allowed_fac_ids:
+            cons_query = cons_query.where(ConsumptionRecord.facility_id.in_(allowed_fac_ids))
+        else:
+            cons_query = cons_query.where(ConsumptionRecord.facility_id.is_(None))
+
         consumptions = db.scalars(
-            select(ConsumptionRecord).order_by(desc(ConsumptionRecord.created_at)).limit(10)
+            cons_query.order_by(desc(ConsumptionRecord.created_at)).limit(10)
         ).all()
         for cr in consumptions:
             fac = facility_map.get(cr.facility_id) if cr.facility_id else None

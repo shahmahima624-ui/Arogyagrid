@@ -25,13 +25,13 @@ import {
   Users,
   Settings,
 } from "lucide-react";
-import { useAuth, UserRole } from "../lib/auth-context";
+import { useAuth } from "../lib/auth-context";
+import { canAccessRoute } from "../lib/permissions";
 
 interface NavItem {
   label: string;
   href: string;
   icon: React.ElementType;
-  roles?: UserRole[];
   badge?: string;
 }
 
@@ -48,7 +48,6 @@ const navGroups: NavGroup[] = [
         label: "Command Centre",
         href: "/dashboard",
         icon: LayoutDashboard,
-        roles: ["DISTRICT_ADMIN", "FACILITY_ADMIN"],
       },
     ],
   },
@@ -59,49 +58,41 @@ const navGroups: NavGroup[] = [
         label: "Medicine Inventory",
         href: "/inventory",
         icon: Boxes,
-        roles: ["DISTRICT_ADMIN", "FACILITY_ADMIN", "HEALTHCARE_STAFF", "WAREHOUSE_MANAGER"],
       },
       {
         label: "Patient Consumption",
         href: "/consumption",
         icon: FileSpreadsheet,
-        roles: ["DISTRICT_ADMIN", "FACILITY_ADMIN", "HEALTHCARE_STAFF"],
       },
       {
         label: "Demand Forecasts",
         href: "/forecasts",
         icon: TrendingUp,
-        roles: ["DISTRICT_ADMIN", "FACILITY_ADMIN"],
       },
       {
         label: "Stockout Risks",
         href: "/risks",
         icon: ShieldAlert,
-        roles: ["DISTRICT_ADMIN", "FACILITY_ADMIN", "WAREHOUSE_MANAGER"],
       },
       {
         label: "Expiry Rescue",
         href: "/expiry-rescue",
         icon: Clock,
-        roles: ["DISTRICT_ADMIN", "FACILITY_ADMIN"],
       },
       {
         label: "Redistribution Engine",
         href: "/redistribution",
         icon: Zap,
-        roles: ["DISTRICT_ADMIN", "FACILITY_ADMIN", "WAREHOUSE_MANAGER"],
       },
       {
         label: "Stock Transfers",
         href: "/transfers",
         icon: Truck,
-        roles: ["DISTRICT_ADMIN", "FACILITY_ADMIN", "WAREHOUSE_MANAGER"],
       },
       {
         label: "Warehouses",
         href: "/warehouses",
         icon: WarehouseIcon,
-        roles: ["DISTRICT_ADMIN", "WAREHOUSE_MANAGER"],
       },
     ],
   },
@@ -112,31 +103,26 @@ const navGroups: NavGroup[] = [
         label: "Supply Network Map",
         href: "/map",
         icon: MapPin,
-        roles: ["DISTRICT_ADMIN", "FACILITY_ADMIN", "WAREHOUSE_MANAGER"],
       },
       {
         label: "AI Supply Copilot",
         href: "/copilot",
         icon: Bot,
-        roles: ["DISTRICT_ADMIN", "FACILITY_ADMIN", "HEALTHCARE_STAFF", "WAREHOUSE_MANAGER"],
       },
       {
         label: "Voice Reporting",
         href: "/voice-reporting",
         icon: Mic,
-        roles: ["HEALTHCARE_STAFF", "FACILITY_ADMIN"],
       },
       {
         label: "Register Digitisation",
         href: "/register-digitisation",
         icon: ScanLine,
-        roles: ["HEALTHCARE_STAFF", "FACILITY_ADMIN"],
       },
       {
         label: "Stress Simulator",
         href: "/stress-simulator",
         icon: Activity,
-        roles: ["DISTRICT_ADMIN"],
       },
     ],
   },
@@ -147,37 +133,31 @@ const navGroups: NavGroup[] = [
         label: "Health Facilities",
         href: "/facilities",
         icon: Building2,
-        roles: ["DISTRICT_ADMIN"],
       },
       {
         label: "Reports & Exports",
         href: "/reports",
         icon: FileText,
-        roles: ["DISTRICT_ADMIN", "FACILITY_ADMIN", "WAREHOUSE_MANAGER"],
       },
       {
         label: "Notifications",
         href: "/notifications",
         icon: Bell,
-        roles: ["DISTRICT_ADMIN", "FACILITY_ADMIN", "HEALTHCARE_STAFF", "WAREHOUSE_MANAGER"],
       },
       {
         label: "Audit Logs",
         href: "/audit-logs",
         icon: ScrollText,
-        roles: ["DISTRICT_ADMIN"],
       },
       {
         label: "User Management",
         href: "/users",
         icon: Users,
-        roles: ["DISTRICT_ADMIN"],
       },
       {
         label: "Settings",
         href: "/settings",
         icon: Settings,
-        roles: ["DISTRICT_ADMIN", "FACILITY_ADMIN"],
       },
     ],
   },
@@ -191,12 +171,8 @@ export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 py-4">
       {navGroups.map((group) => {
-        // Filter items in group based on user role from backend profile
-        const filteredItems = group.items.filter((item) => {
-          if (!item.roles) return true;
-          if (!currentRole) return false;
-          return item.roles.includes(currentRole);
-        });
+        // Filter items in group strictly based on centralized permission matrix
+        const filteredItems = group.items.filter((item) => canAccessRoute(currentRole, item.href));
 
         if (filteredItems.length === 0) return null;
 

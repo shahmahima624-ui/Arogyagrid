@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, verify_scope
 from app.db.session import get_db
 from app.models.core import User
 from app.schemas.ai import (
@@ -39,7 +39,8 @@ def run_copilot(
     Interacts with AarogyaGrid Copilot for supply chain resilience questions.
     Uses live database context with Gemini or fallback rule engine.
     """
-    effective_district = body.district_id or current_user.district_id
+    verify_scope(user=current_user, district_id=body.district_id)
+    effective_district = current_user.district_id or body.district_id
     return ai_service.ask_copilot(
         db=db,
         query=body.query,

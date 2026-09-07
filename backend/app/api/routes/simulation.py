@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, verify_scope
 from app.db.session import get_db
 from app.models.core import User
 from app.schemas.simulation import SimulationResultResponse, SimulationScenario
@@ -22,6 +22,7 @@ def run_simulation(
     - Supply chain delay (+14 days)
     - Calculates accelerated stockout dates, emergency stock required, and preventive transfers
     """
-    effective_district = scenario.district_id or current_user.district_id
+    verify_scope(user=current_user, district_id=scenario.district_id)
+    effective_district = current_user.district_id or scenario.district_id
     scenario.district_id = effective_district
     return simulation_service.run_stress_simulation(db=db, scenario=scenario)

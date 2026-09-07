@@ -8,21 +8,27 @@ from app.schemas.telemetry import RealTimeEventMessage
 
 
 async def event_generator() -> AsyncGenerator[str, None]:
-    """Generates Server-Sent Events (SSE) stream for real-time dashboard updates."""
+    """
+    Generates public, non-sensitive Server-Sent Events (SSE) telemetry heartbeats for real-time frontend indicators.
+    Intentionally public: contains only generic network telemetry and status notices with NO sensitive facility,
+    patient, medicine, or transfer details.
+    """
     counter = 0
-    event_types = ["CRITICAL_STOCKOUT", "COLD_CHAIN_BREACH", "TRANSFER_APPROVED", "REPLENISHMENT_ARRIVED"]
-    facilities = ["PHC Sanand Sector 1", "CHC Bavla Sector 2", "PHC Viramgam Sector 3"]
+    system_notices = [
+        ("GRID_HEARTBEAT", "Supply Network Telemetry Active", "Continuous cold chain & inventory telemetry streaming operational."),
+        ("SYNC_CHECKPOINT", "Data Synchronization Checkpoint", "Network node status synchronization checkpoint completed successfully."),
+        ("RESILIENCE_ONLINE", "Resilience Engine Online", "Geodesic optimization and forecasting models active on network grid."),
+    ]
 
-    while counter < 5:
+    while counter < 3:
+        ev_type, title, details = system_notices[counter % len(system_notices)]
         counter += 1
-        ev_type = event_types[counter % len(event_types)]
-        fac_name = facilities[counter % len(facilities)]
 
         msg = RealTimeEventMessage(
             event_id=f"EVT-{uuid.uuid4().hex[:8].upper()}",
             event_type=ev_type,
-            title=f"{ev_type.replace('_', ' ')} Alert",
-            details=f"Real-time supply event detected at {fac_name}.",
+            title=title,
+            details=details,
             timestamp=datetime.now(timezone.utc),
         )
 

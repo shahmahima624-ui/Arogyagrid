@@ -60,14 +60,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const defaultRoleConfig = { label: "User", bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-200" };
   const roleConfig = user?.role && roleDisplayMap[user.role] ? roleDisplayMap[user.role] : defaultRoleConfig;
 
-  // Derive scope label from backend profile (no hardcoded district names)
-  const scopeLabel = user?.district_id
-    ? "District Scope"
-    : user?.facility_id
-    ? "Facility Scope"
-    : user?.warehouse_id
-    ? "Warehouse Scope"
-    : "Unassigned";
+  // Derive scope label primarily from user role (no hardcoded district names)
+  const scopeLabel = (() => {
+    if (!user) return "Unassigned Scope";
+    switch (user.role) {
+      case "DISTRICT_ADMIN":
+        return "District Scope";
+      case "FACILITY_ADMIN":
+      case "HEALTHCARE_STAFF":
+        return "Facility Scope";
+      case "WAREHOUSE_MANAGER":
+        return "Warehouse Scope";
+      default:
+        return "Assigned Scope";
+    }
+  })();
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
