@@ -13,7 +13,7 @@ export default function ForbiddenPage() {
         <div className="space-y-1">
           <h1 className="text-xl font-bold text-slate-900">Access Restricted</h1>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Your assigned role does not permit access to this module or operational action.
+            Your assigned role does not permit access to this AarogyaGrid module.
           </p>
         </div>
         <div className="pt-4 border-t border-slate-100">
@@ -22,7 +22,7 @@ export default function ForbiddenPage() {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-teal-600 text-white text-xs font-semibold hover:bg-teal-700 transition-colors shadow-2xs"
           >
             <ArrowLeft className="h-4 w-4" />
-            Return to Command Centre
+            Return to Dashboard
           </Link>
         </div>
       </div>

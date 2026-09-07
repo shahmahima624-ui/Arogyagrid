@@ -101,7 +101,7 @@ export function Nav() {
           <div className="flex items-center gap-3 shrink-0">
             <div className="hidden lg:flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1 text-xs text-slate-600 font-medium">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              <span>Jurisdiction: <strong className="text-slate-800 font-bold">Ahmedabad District</strong></span>
+              <span>Jurisdiction: <strong className="text-slate-800 font-bold">{user?.district_id ? "District Scope" : user?.facility_id ? "Facility Scope" : "Assigned Scope"}</strong></span>
             </div>
 
             {/* Profile Dropdown */}
@@ -111,10 +111,10 @@ export function Nav() {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-800 transition-colors"
               >
                 <div className="flex h-6 w-6 items-center justify-center rounded-full bg-teal-100 text-teal-800 font-bold text-[11px]">
-                  {user?.name ? user.name[0] : "A"}
+                  {user?.name ? user.name[0].toUpperCase() : "U"}
                 </div>
                 <span className="hidden sm:block truncate max-w-[120px]">
-                  {user?.name || "District Admin"}
+                  {user?.name || "Authenticated User"}
                 </span>
                 {badge && (
                   <span className={`hidden md:inline-block text-[10px] font-bold px-2 py-0.5 rounded-full border ${badge.color}`}>

@@ -37,8 +37,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let es: EventSource | null = null;
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api";
-      es = new EventSource(`${baseUrl}/events`);
+      const eventsUrl =
+        process.env.NEXT_PUBLIC_EVENTS_URL ??
+        `${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api"}/events`;
+      es = new EventSource(eventsUrl);
       es.onmessage = (e) => {
         try {
           const parsed = JSON.parse(e.data);
@@ -55,7 +57,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     router.replace("/login");
   };
 
-  const roleConfig = user?.role ? roleDisplayMap[user.role] : roleDisplayMap.DISTRICT_ADMIN;
+  const defaultRoleConfig = { label: "User", bg: "bg-slate-50", text: "text-slate-700", border: "border-slate-200" };
+  const roleConfig = user?.role && roleDisplayMap[user.role] ? roleDisplayMap[user.role] : defaultRoleConfig;
 
   // Derive scope label from backend profile (no hardcoded district names)
   const scopeLabel = user?.district_id

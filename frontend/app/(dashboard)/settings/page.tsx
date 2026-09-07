@@ -41,7 +41,7 @@ export default function SettingsPage() {
             <span className="text-slate-400 font-semibold uppercase text-[10px]">Assigned Role</span>
             <div className="flex items-center gap-1.5 font-bold text-slate-800">
               <ShieldCheck className="h-4 w-4 text-teal-600" />
-              {user?.role ? user.role.replace("_", " ") : "DISTRICT ADMIN"}
+              {user?.role ? user.role.replace(/_/g, " ") : "Authenticated User"}
             </div>
           </div>
 
@@ -49,7 +49,13 @@ export default function SettingsPage() {
             <span className="text-slate-400 font-semibold uppercase text-[10px]">Jurisdiction Scope</span>
             <div className="flex items-center gap-1.5 font-bold text-slate-800">
               <Building2 className="h-4 w-4 text-teal-600" />
-              {user?.role === "DISTRICT_ADMIN" ? "Ahmedabad Rural District" : "Assigned Facility Scope"}
+              {user?.district_id
+                ? "District Scope"
+                : user?.facility_id
+                ? "Facility Scope"
+                : user?.warehouse_id
+                ? "Warehouse Scope"
+                : "Unassigned"}
             </div>
           </div>
         </div>

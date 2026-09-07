@@ -186,14 +186,15 @@ const navGroups: NavGroup[] = [
 export function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { user } = useAuth();
-  const currentRole = user?.role || "DISTRICT_ADMIN";
+  const currentRole = user?.role;
 
   return (
     <nav className="flex flex-1 flex-col gap-5 overflow-y-auto px-3 py-4">
       {navGroups.map((group) => {
-        // Filter items in group based on user role
+        // Filter items in group based on user role from backend profile
         const filteredItems = group.items.filter((item) => {
           if (!item.roles) return true;
+          if (!currentRole) return false;
           return item.roles.includes(currentRole);
         });
 

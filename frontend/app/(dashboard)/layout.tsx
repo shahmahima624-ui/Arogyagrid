@@ -1,20 +1,46 @@
 "use client";
 
 import React, { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "../../lib/auth-context";
+import { useRouter, usePathname } from "next/navigation";
+import { useAuth, UserRole } from "../../lib/auth-context";
 import { AppShell } from "../../components/app-shell";
 import { Activity, ShieldAlert, LogOut } from "lucide-react";
 
+const ROUTE_PERMISSIONS: Record<string, UserRole[]> = {
+  "/facilities": ["DISTRICT_ADMIN"],
+  "/stress-simulator": ["DISTRICT_ADMIN"],
+  "/audit-logs": ["DISTRICT_ADMIN"],
+  "/users": ["DISTRICT_ADMIN"],
+  "/forecasts": ["DISTRICT_ADMIN", "FACILITY_ADMIN"],
+  "/expiry-rescue": ["DISTRICT_ADMIN", "FACILITY_ADMIN"],
+  "/warehouses": ["DISTRICT_ADMIN", "WAREHOUSE_MANAGER"],
+  "/risks": ["DISTRICT_ADMIN", "FACILITY_ADMIN", "WAREHOUSE_MANAGER"],
+  "/redistribution": ["DISTRICT_ADMIN", "FACILITY_ADMIN", "WAREHOUSE_MANAGER"],
+  "/transfers": ["DISTRICT_ADMIN", "FACILITY_ADMIN", "WAREHOUSE_MANAGER"],
+  "/reports": ["DISTRICT_ADMIN", "FACILITY_ADMIN", "WAREHOUSE_MANAGER"],
+  "/consumption": ["DISTRICT_ADMIN", "FACILITY_ADMIN", "HEALTHCARE_STAFF"],
+  "/voice-reporting": ["HEALTHCARE_STAFF", "FACILITY_ADMIN", "DISTRICT_ADMIN"],
+  "/register-digitisation": ["HEALTHCARE_STAFF", "FACILITY_ADMIN", "DISTRICT_ADMIN"],
+};
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isLoading, unprovisionedError, signOut } = useAuth();
 
   useEffect(() => {
     if (!isLoading && !user && !unprovisionedError) {
       router.replace("/login");
+      return;
     }
-  }, [isLoading, user, unprovisionedError, router]);
+
+    if (!isLoading && user) {
+      const allowedRoles = ROUTE_PERMISSIONS[pathname];
+      if (allowedRoles && !allowedRoles.includes(user.role)) {
+        router.replace("/forbidden");
+      }
+    }
+  }, [isLoading, user, unprovisionedError, pathname, router]);
 
   if (isLoading) {
     return (
@@ -38,7 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="space-y-1">
             <h1 className="text-xl font-bold text-slate-900">Account Not Provisioned</h1>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Your Supabase account exists, but has not been allocated an application role or facility in the district database.
+              Your Supabase account exists, but has not been allocated an application role or facility in the district database. Contact the district administrator.
             </p>
           </div>
           <div className="pt-4 border-t border-slate-100 flex justify-center">
@@ -56,6 +82,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   if (!user) {
+    return null;
+  }
+
+  const allowedRoles = ROUTE_PERMISSIONS[pathname];
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
     return null;
   }
 

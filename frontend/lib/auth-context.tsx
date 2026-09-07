@@ -25,6 +25,7 @@ export interface UserProfile {
 interface AuthContextType {
   user: UserProfile | null;
   isLoading: boolean;
+  isAuthenticated: boolean;
   supabaseUser: any | null;
   unprovisionedError: string | null;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
@@ -41,16 +42,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [unprovisionedError, setUnprovisionedError] = useState<string | null>(null);
 
-  // Fetch backend application user profile via GET /api/users/me
+  // Fetch backend application user profile via authenticated GET /api/me
   async function fetchBackendProfile(accessToken: string): Promise<UserProfile | null> {
     setAuthToken(accessToken);
     try {
-      const profile = await api<UserProfile>("/users/me");
+      const profile = await api<UserProfile>("/me", { skipForbiddenRedirect: true });
       setUnprovisionedError(null);
       return profile;
     } catch (err: any) {
       console.warn("Backend user profile lookup failed:", err.message);
-      if (err.message && (err.message.includes("not provisioned") || err.message.includes("403"))) {
+      if (err.status === 403 || (err.message && (err.message.includes("not provisioned") || err.message.includes("403")))) {
         setUnprovisionedError("Account not provisioned in district database. Contact Administrator.");
       }
       setAuthToken(null);
@@ -151,6 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         isLoading,
+        isAuthenticated: !!user,
         supabaseUser,
         unprovisionedError,
         signIn,

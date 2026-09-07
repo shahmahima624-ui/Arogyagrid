@@ -24,6 +24,7 @@ from app.api.routes.events import router as events_router
 api_router = APIRouter(prefix="/api")
 api_router.include_router(health_router, tags=["system"])
 api_router.include_router(domain_router, tags=["core domain"])
+api_router.include_router(auth_router, tags=["auth"])
 api_router.include_router(auth_router, prefix="/users", tags=["auth"])
 api_router.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 api_router.include_router(consumption_intelligence_router, prefix="/consumption-intelligence", tags=["consumption intelligence"])

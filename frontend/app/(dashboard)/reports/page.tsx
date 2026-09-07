@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { PageHeader } from "../../../components/page-header";
 import { StatusBadge } from "../../../components/status-badge";
-import { api } from "../../../lib/api";
+import { apiBaseUrl, getAuthToken } from "../../../lib/api";
 import {
   FileSpreadsheet,
   Download,
@@ -46,10 +46,30 @@ export default function ReportsPage() {
     },
   ];
 
-  const handleExportCsv = (type: string) => {
+  const handleExportCsv = async (type: string) => {
     setDownloading(type);
-    window.open(`${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000/api"}/reports/export-csv?type=${type}`, "_blank");
-    setTimeout(() => setDownloading(null), 1500);
+    try {
+      const token = getAuthToken();
+      const headers: Record<string, string> = {};
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const res = await fetch(`${apiBaseUrl}/reports/export-csv?type=${type}`, {
+        headers,
+      });
+      if (!res.ok) throw new Error("Export failed");
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `arogyagrid_${type}_report.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error(err);
+    } finally {
+      setDownloading(null);
+    }
   };
 
   return (

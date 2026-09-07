@@ -6,6 +6,8 @@ from app.services.event_service import event_generator
 router = APIRouter()
 
 
+@router.get("")
+@router.get("/")
 @router.get("/stream")
 def stream_realtime_events():
     """

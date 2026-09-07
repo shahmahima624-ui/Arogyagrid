@@ -135,7 +135,7 @@ export default function UsersPage() {
                       </span>
                     </td>
                     <td className="py-3 px-4 whitespace-nowrap text-slate-600">
-                      {u.facility_id ? "Assigned Facility" : "Ahmedabad Rural District"}
+                      {u.facility_id ? "Facility Scope" : u.district_id ? "District Scope" : "General Scope"}
                     </td>
                     <td className="py-3 px-4 whitespace-nowrap">
                       <StatusBadge status={u.status} />

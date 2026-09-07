@@ -15,6 +15,10 @@ export class ApiError extends Error {
   }
 }
 
+export interface ApiOptions extends RequestInit {
+  skipForbiddenRedirect?: boolean;
+}
+
 // ─── Token Helpers ──────────────────────────────────────────────────────────
 
 export function getAuthToken(): string | null {
@@ -33,7 +37,7 @@ export function setAuthToken(token: string | null): void {
 
 // ─── Core API Function ──────────────────────────────────────────────────────
 
-export async function api<T>(path: string, options?: RequestInit): Promise<T> {
+export async function api<T>(path: string, options?: ApiOptions): Promise<T> {
   const token = getAuthToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -62,7 +66,7 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
       }
     }
 
-    if (response.status === 403) {
+    if (response.status === 403 && !options?.skipForbiddenRedirect) {
       if (typeof window !== "undefined") {
         window.location.replace("/forbidden");
       }
