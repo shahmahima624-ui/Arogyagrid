@@ -95,11 +95,17 @@ def list_all_transfers(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if facility_id:
+        verify_scope(current_user, facility_id=facility_id, db=db)
+
     effective_facility = facility_id
+    district_id = None
     if current_user.role in [UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value]:
         effective_facility = current_user.facility_id
+    elif current_user.role in [UserRole.DISTRICT_ADMIN.value, UserRole.WAREHOUSE_MANAGER.value]:
+        district_id = current_user.district_id
 
-    transfers = transfer_service.list_transfers(db, facility_id=effective_facility, status=status)
+    transfers = transfer_service.list_transfers(db, facility_id=effective_facility, status=status, district_id=district_id)
     return [_to_transfer_out(t, db) for t in transfers]
 
 

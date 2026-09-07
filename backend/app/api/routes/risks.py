@@ -14,7 +14,7 @@ from app.schemas.risks import (
     StockoutRiskItem,
 )
 from app.services.risk_engine import evaluate_stockout_risks
-from app.core.dependencies import get_current_user, require_role
+from app.core.dependencies import get_current_user, require_role, verify_scope
 
 router = APIRouter()
 
@@ -33,11 +33,17 @@ def get_stockout_risks(
     current_user: User = Depends(get_current_user),
 ):
     """Returns dynamic stock-out risk calculations across facility-medicine pairs."""
-    effective_facility_id = facility_id
-    effective_district_id = district_id
+    if district_id:
+        verify_scope(current_user, district_id=district_id, db=db)
+    if facility_id:
+        verify_scope(current_user, facility_id=facility_id, db=db)
 
-    if current_user.role in [UserRole.FACILITY_ADMIN, UserRole.HEALTHCARE_STAFF]:
+    effective_facility_id = facility_id
+    effective_district_id = current_user.district_id
+
+    if current_user.role in [UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value]:
         effective_facility_id = current_user.facility_id
+        effective_district_id = None
 
     assessment = evaluate_stockout_risks(
         db=db,
@@ -76,12 +82,15 @@ def get_critical_stockout_risks(
 ):
     """Fast-path endpoint returning only CRITICAL stockout risks."""
     effective_facility_id = None
-    if current_user.role in [UserRole.FACILITY_ADMIN, UserRole.HEALTHCARE_STAFF]:
+    effective_district_id = current_user.district_id
+    if current_user.role in [UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value]:
         effective_facility_id = current_user.facility_id
+        effective_district_id = None
 
     assessment = evaluate_stockout_risks(
         db=db,
         facility_id=effective_facility_id,
+        district_id=effective_district_id,
     )
     return [r for r in assessment.risks if r.risk_level == RiskTier.CRITICAL]
 
@@ -93,13 +102,19 @@ def recalculate_stockout_risks(
     current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN, UserRole.FACILITY_ADMIN])),
 ):
     """Triggers on-demand stockout risk re-evaluation."""
+    if payload.facility_id:
+        verify_scope(current_user, facility_id=payload.facility_id, db=db)
+
     target_facility_id = payload.facility_id
-    if current_user.role == UserRole.FACILITY_ADMIN:
+    target_district_id = current_user.district_id
+    if current_user.role == UserRole.FACILITY_ADMIN.value:
         target_facility_id = current_user.facility_id
+        target_district_id = None
 
     assessment = evaluate_stockout_risks(
         db=db,
         facility_id=target_facility_id,
+        district_id=target_district_id,
         critical_threshold_days=payload.critical_threshold_days,
         high_risk_threshold_days=payload.high_risk_threshold_days,
         at_risk_threshold_days=payload.at_risk_threshold_days,

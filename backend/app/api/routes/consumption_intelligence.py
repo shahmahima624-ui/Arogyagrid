@@ -27,10 +27,10 @@ def get_consumption_series(
         raise HTTPException(status_code=404, detail="Facility not found")
     if db.get(Medicine, medicine_id) is None:
         raise HTTPException(status_code=404, detail="Medicine not found")
+    from app.core.dependencies import verify_scope
+    verify_scope(current_user, facility_id=facility_id, db=db)
     if current_user.role == UserRole.WAREHOUSE_MANAGER.value:
         raise HTTPException(status_code=403, detail="Warehouse managers do not have access to consumption intelligence")
-    if current_user.role in (UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value) and current_user.facility_id != facility_id:
-        raise HTTPException(status_code=403, detail="Access denied: you can only view your assigned facility")
 
     selected_end_date = end_date or date.today()
     return build_consumption_intelligence(

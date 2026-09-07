@@ -118,15 +118,35 @@ def verify_scope(
 ) -> None:
     """
     Strict server-side resource scoping validation.
+    Enforces that requested scope is a subset of the authenticated user's assigned scope.
     """
-    if user.role == UserRole.DISTRICT_ADMIN.value:
-        if district_id and user.district_id and user.district_id != district_id:
+    # 1. District Scope Check across all roles
+    if district_id is not None:
+        if user.district_id is not None and user.district_id != district_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Access denied: Cannot access resources outside your assigned district"
             )
+
+    # 2. District Admin Scope
+    if user.role == UserRole.DISTRICT_ADMIN.value:
+        if facility_id is not None and db is not None:
+            facility = db.get(Facility, facility_id)
+            if facility and user.district_id and facility.district_id != user.district_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: Cannot access a facility outside your assigned district"
+                )
+        if warehouse_id is not None and db is not None:
+            warehouse = db.get(Warehouse, warehouse_id)
+            if warehouse and user.district_id and warehouse.district_id != user.district_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: Cannot access a warehouse outside your assigned district"
+                )
         return
 
+    # 3. Facility Admin & Healthcare Staff Scope
     if user.role in (UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value):
         if warehouse_id is not None:
             raise HTTPException(
@@ -138,7 +158,16 @@ def verify_scope(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Access denied: You do not have permission to access this facility"
             )
+        if facility_id is not None and db is not None:
+            facility = db.get(Facility, facility_id)
+            if facility and user.district_id and facility.district_id != user.district_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: Facility does not belong to your assigned district"
+                )
+        return
 
+    # 4. Warehouse Manager Scope
     elif user.role == UserRole.WAREHOUSE_MANAGER.value:
         if facility_id is not None:
             raise HTTPException(
@@ -152,6 +181,7 @@ def verify_scope(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Access denied: Cannot access a warehouse outside your assigned district"
                 )
+        return
 
 
 def verify_transfer_scope(user: User, transfer: StockTransfer, db: Session) -> None:
@@ -159,6 +189,24 @@ def verify_transfer_scope(user: User, transfer: StockTransfer, db: Session) -> N
     Verify user scope against a specific stock transfer record.
     """
     if user.role == UserRole.DISTRICT_ADMIN.value:
+        if user.district_id and db is not None:
+            dest_fac = db.get(Facility, transfer.destination_facility_id) if transfer.destination_facility_id else None
+            src_fac = db.get(Facility, transfer.source_facility_id) if transfer.source_facility_id else None
+            src_wh = db.get(Warehouse, transfer.source_warehouse_id) if transfer.source_warehouse_id else None
+
+            district_match = False
+            if dest_fac and dest_fac.district_id == user.district_id:
+                district_match = True
+            elif src_fac and src_fac.district_id == user.district_id:
+                district_match = True
+            elif src_wh and src_wh.district_id == user.district_id:
+                district_match = True
+
+            if not district_match and (dest_fac or src_fac or src_wh):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: Transfer does not involve your assigned district"
+                )
         return
 
     if user.role in (UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value):

@@ -19,7 +19,7 @@ from app.services.forecasting import (
     compute_consumption_analytics,
     train_and_forecast_item,
 )
-from app.core.dependencies import get_current_user, require_role
+from app.core.dependencies import get_current_user, require_role, verify_scope
 
 router = APIRouter()
 
@@ -34,17 +34,24 @@ def list_forecasts(
     current_user: User = Depends(get_current_user),
 ):
     """Returns demand forecast summaries across facility-medicine pairs."""
-    # Apply role scoping
+    if district_id:
+        verify_scope(current_user, district_id=district_id, db=db)
+    if facility_id:
+        verify_scope(current_user, facility_id=facility_id, db=db)
+
     effective_facility_id = facility_id
-    if current_user.role in [UserRole.FACILITY_ADMIN, UserRole.HEALTHCARE_STAFF]:
+    effective_district_id = current_user.district_id
+
+    if current_user.role in [UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value]:
         effective_facility_id = current_user.facility_id
+        effective_district_id = None
 
     # Fetch facilities
     fac_query = select(Facility)
     if effective_facility_id:
         fac_query = fac_query.where(Facility.id == effective_facility_id)
-    elif district_id:
-        fac_query = fac_query.where(Facility.district_id == district_id)
+    elif effective_district_id:
+        fac_query = fac_query.where(Facility.district_id == effective_district_id)
     facilities = db.scalars(fac_query).all()
     facility_map = {f.id: f for f in facilities}
 
@@ -103,13 +110,18 @@ def generate_forecasts(
     current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN, UserRole.FACILITY_ADMIN])),
 ):
     """Triggers ML model training and forecast regeneration across network nodes."""
+    if payload.facility_id:
+        verify_scope(current_user, facility_id=payload.facility_id, db=db)
+
     target_facility_id = payload.facility_id or (
-        current_user.facility_id if current_user.role == UserRole.FACILITY_ADMIN else None
+        current_user.facility_id if current_user.role == UserRole.FACILITY_ADMIN.value else None
     )
 
     fac_query = select(Facility)
     if target_facility_id:
         fac_query = fac_query.where(Facility.id == target_facility_id)
+    elif current_user.district_id:
+        fac_query = fac_query.where(Facility.district_id == current_user.district_id)
     facilities = db.scalars(fac_query).all()
 
     medicines = db.scalars(select(Medicine)).all()
@@ -171,8 +183,11 @@ def get_consumption_analytics_endpoint(
     current_user: User = Depends(get_current_user),
 ):
     """Phase 4 endpoint: Returns rolling averages, trends, and stock velocity."""
+    if facility_id:
+        verify_scope(current_user, facility_id=facility_id, db=db)
+
     effective_facility_id = facility_id
-    if current_user.role in [UserRole.FACILITY_ADMIN, UserRole.HEALTHCARE_STAFF]:
+    if current_user.role in [UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value]:
         effective_facility_id = current_user.facility_id
 
     return compute_consumption_analytics(db, effective_facility_id)
@@ -188,9 +203,7 @@ def get_forecast_detail(
 ):
     """Returns detailed historical consumption points, predicted trajectory, and model evaluation metrics."""
     # Scope check
-    if current_user.role in [UserRole.FACILITY_ADMIN, UserRole.HEALTHCARE_STAFF]:
-        if current_user.facility_id and current_user.facility_id != facility_id:
-            raise HTTPException(status_code=403, detail="Access to facility forecast is forbidden")
+    verify_scope(current_user, facility_id=facility_id, db=db)
 
     facility = db.get(Facility, facility_id)
     if not facility:

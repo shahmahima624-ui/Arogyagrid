@@ -457,6 +457,7 @@ def list_transfers(
     db: Session,
     facility_id: uuid.UUID | None = None,
     status: str | None = None,
+    district_id: uuid.UUID | None = None,
 ) -> list[StockTransfer]:
     q = select(StockTransfer)
     if status:
@@ -465,6 +466,14 @@ def list_transfers(
         q = q.where(
             (StockTransfer.destination_facility_id == facility_id)
             | (StockTransfer.source_facility_id == facility_id)
+        )
+    elif district_id:
+        fac_ids = select(Facility.id).where(Facility.district_id == district_id)
+        wh_ids = select(Warehouse.id).where(Warehouse.district_id == district_id)
+        q = q.where(
+            (StockTransfer.destination_facility_id.in_(fac_ids))
+            | (StockTransfer.source_facility_id.in_(fac_ids))
+            | (StockTransfer.source_warehouse_id.in_(wh_ids))
         )
     q = q.order_by(StockTransfer.created_at.desc())
     return db.scalars(q).all()

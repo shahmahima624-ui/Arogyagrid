@@ -20,7 +20,7 @@ def export_csv(
     """
     Exports clean CSV report for inventory, transfers, or audit logs.
     """
-    csv_data = report_service.generate_csv_export(db=db, export_type=type)
+    csv_data = report_service.generate_csv_export(db=db, export_type=type, user=current_user)
     filename = f"arogyagrid_{type}_{current_user.role.lower()}.csv"
     return Response(
         content=csv_data,
@@ -38,4 +38,4 @@ def get_dispatch_manifest(
     """
     Generates official National Health Mission stock dispatch manifest for printable PDF verification.
     """
-    return report_service.generate_dispatch_manifest(db=db, transfer_id=transfer_id)
+    return report_service.generate_dispatch_manifest(db=db, transfer_id=transfer_id, user=current_user)

@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user
+from app.core.dependencies import get_current_user, verify_scope
 from app.db.session import get_db
 from app.models.core import User, UserRole
 from app.schemas.expiry import ExpiryAssessmentResponse, ExpiryRescueOpportunity
@@ -20,11 +20,17 @@ def get_expiry_risks(
     current_user: User = Depends(get_current_user),
 ):
     """Returns batch-level expiry calculations, urgency tiers, and rescue candidate flags."""
-    effective_facility_id = facility_id
-    effective_district_id = district_id
+    if district_id:
+        verify_scope(current_user, district_id=district_id, db=db)
+    if facility_id:
+        verify_scope(current_user, facility_id=facility_id, db=db)
 
-    if current_user.role in [UserRole.FACILITY_ADMIN, UserRole.HEALTHCARE_STAFF]:
+    effective_facility_id = facility_id
+    effective_district_id = current_user.district_id
+
+    if current_user.role in [UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value]:
         effective_facility_id = current_user.facility_id
+        effective_district_id = None
 
     return evaluate_expiry_risks(
         db=db,
@@ -41,11 +47,17 @@ def get_expiry_rescue_opportunities(
     current_user: User = Depends(get_current_user),
 ):
     """Returns prioritized candidate batches with safe surplus ready for FEFO redistribution."""
-    effective_facility_id = facility_id
-    effective_district_id = district_id
+    if district_id:
+        verify_scope(current_user, district_id=district_id, db=db)
+    if facility_id:
+        verify_scope(current_user, facility_id=facility_id, db=db)
 
-    if current_user.role in [UserRole.FACILITY_ADMIN, UserRole.HEALTHCARE_STAFF]:
+    effective_facility_id = facility_id
+    effective_district_id = current_user.district_id
+
+    if current_user.role in [UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value]:
         effective_facility_id = current_user.facility_id
+        effective_district_id = None
 
     assessment = evaluate_expiry_risks(
         db=db,

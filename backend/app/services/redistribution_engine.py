@@ -358,6 +358,9 @@ def list_recommendations(
         q = q.where(RedistributionRecommendation.status == status)
     if facility_id:
         q = q.where(RedistributionRecommendation.destination_facility_id == facility_id)
+    elif district_id:
+        fac_ids = select(Facility.id).where(Facility.district_id == district_id)
+        q = q.where(RedistributionRecommendation.destination_facility_id.in_(fac_ids))
     q = q.order_by(RedistributionRecommendation.score.desc())
     return db.scalars(q).all()
 

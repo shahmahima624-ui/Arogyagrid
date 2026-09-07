@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_user, require_role
+from app.core.dependencies import get_current_user, require_role, verify_scope
 from app.db.session import get_db
 from app.models.core import Facility, Medicine, RedistributionRecommendation, User, UserRole, Warehouse
 from app.schemas.redistribution import (
@@ -77,6 +77,11 @@ def generate_recommendations(
     Persists ranked recommendations for human review.
     Only DISTRICT_ADMIN and WAREHOUSE_MANAGER may trigger generation.
     """
+    if body.district_id:
+        verify_scope(current_user, district_id=body.district_id, db=db)
+    if body.facility_id:
+        verify_scope(current_user, facility_id=body.facility_id, db=db)
+
     effective_district = body.district_id
     if current_user.district_id:
         effective_district = current_user.district_id
@@ -103,15 +108,23 @@ def generate_recommendations(
 def get_recommendations(
     status: str | None = Query(None, description="Filter by status: RECOMMENDED, PENDING, APPROVED, REJECTED, CANCELLED"),
     facility_id: uuid.UUID | None = Query(None, description="Filter by destination facility"),
+    district_id: uuid.UUID | None = Query(None, description="Filter by district"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Returns all redistribution recommendations, ordered by score descending."""
+    if district_id:
+        verify_scope(current_user, district_id=district_id, db=db)
+    if facility_id:
+        verify_scope(current_user, facility_id=facility_id, db=db)
+
     effective_facility = facility_id
+    effective_district = current_user.district_id
     if current_user.role in [UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value]:
         effective_facility = current_user.facility_id
+        effective_district = None
 
-    recs = list_recommendations(db, facility_id=effective_facility, status=status)
+    recs = list_recommendations(db, district_id=effective_district, facility_id=effective_facility, status=status)
     return [_to_out(r, db) for r in recs]
 
 
@@ -131,6 +144,13 @@ def get_recommendation(
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Access denied: Recommendation does not involve your assigned facility",
+            )
+    elif current_user.role == UserRole.DISTRICT_ADMIN.value and current_user.district_id:
+        dest_fac = db.get(Facility, rec.destination_facility_id)
+        if dest_fac and dest_fac.district_id != current_user.district_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Access denied: Recommendation belongs to another district",
             )
 
     return _to_out(rec, db)

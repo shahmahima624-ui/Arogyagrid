@@ -53,7 +53,16 @@ def log_audit(db: Session, user: User, action: str, entity: str, entity_id: uuid
 
 @router.get("/districts", response_model=list[DistrictOut])
 def list_districts(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.scalars(select(District).order_by(District.name)).all()
+    if not current_user.district_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: User is not assigned to any district"
+        )
+    return db.scalars(
+        select(District)
+        .where(District.id == current_user.district_id)
+        .order_by(District.name)
+    ).all()
 
 
 @router.post("/districts", response_model=DistrictOut, status_code=status.HTTP_201_CREATED)
@@ -78,9 +87,24 @@ def list_facilities(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    query = select(Facility).order_by(Facility.name)
     if district_id:
-        query = query.where(Facility.district_id == district_id)
+        verify_scope(current_user, district_id=district_id, db=db)
+
+    query = select(Facility).order_by(Facility.name)
+
+    if current_user.role in (UserRole.DISTRICT_ADMIN.value, UserRole.WAREHOUSE_MANAGER.value):
+        if not current_user.district_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No assigned district")
+        query = query.where(Facility.district_id == current_user.district_id)
+
+    elif current_user.role in (UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value):
+        if not current_user.facility_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No assigned facility")
+        query = query.where(Facility.id == current_user.facility_id)
+
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+
     return db.scalars(query).all()
 
 
@@ -91,6 +115,7 @@ def create_facility(
     current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN]))
 ):
     require(db, District, payload.district_id, "District")
+    verify_scope(current_user, district_id=payload.district_id, db=db)
     entity = Facility(**payload.model_dump())
     db.add(entity)
     db.commit()
@@ -107,9 +132,13 @@ def list_warehouses(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    query = select(Warehouse).order_by(Warehouse.name)
     if district_id:
-        query = query.where(Warehouse.district_id == district_id)
+        verify_scope(current_user, district_id=district_id, db=db)
+
+    if not current_user.district_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No assigned district")
+
+    query = select(Warehouse).where(Warehouse.district_id == current_user.district_id).order_by(Warehouse.name)
     return db.scalars(query).all()
 
 
@@ -120,6 +149,7 @@ def create_warehouse(
     current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN]))
 ):
     require(db, District, payload.district_id, "District")
+    verify_scope(current_user, district_id=payload.district_id, db=db)
     entity = Warehouse(**payload.model_dump())
     db.add(entity)
     db.commit()
@@ -162,7 +192,6 @@ def list_inventory(
     
     # Enforce RBAC Scoping
     if current_user.role in (UserRole.FACILITY_ADMIN.value, UserRole.HEALTHCARE_STAFF.value):
-        # Force/check facility_id
         if facility_id and facility_id != current_user.facility_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -172,23 +201,38 @@ def list_inventory(
         query = query.where(InventoryBatch.facility_id == facility_id)
         
     elif current_user.role == UserRole.WAREHOUSE_MANAGER.value:
-        # Warehouse manager can only view warehouse inventory
         if facility_id is not None:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Access denied: warehouse managers cannot view facility inventory."
             )
-        # Find warehouse for this district
-        warehouse = db.scalar(select(Warehouse).where(Warehouse.district_id == current_user.district_id))
-        warehouse_id = warehouse.id if warehouse else None
-        if not warehouse_id:
-            return []
-        query = query.where(InventoryBatch.warehouse_id == warehouse_id)
+        if not current_user.district_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No assigned district")
+        allowed_wh_subquery = select(Warehouse.id).where(Warehouse.district_id == current_user.district_id)
+        query = query.where(InventoryBatch.warehouse_id.in_(allowed_wh_subquery))
         
-    else:
-        # District admins see everything; optionally apply standard filters
+    elif current_user.role == UserRole.DISTRICT_ADMIN.value:
+        if not current_user.district_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No assigned district")
+        
+        allowed_fac_subquery = select(Facility.id).where(Facility.district_id == current_user.district_id)
+        allowed_wh_subquery = select(Warehouse.id).where(Warehouse.district_id == current_user.district_id)
+
         if facility_id:
+            fac = db.get(Facility, facility_id)
+            if fac and fac.district_id != current_user.district_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: Cannot access inventory for a facility outside your district"
+                )
             query = query.where(InventoryBatch.facility_id == facility_id)
+        else:
+            query = query.where(
+                (InventoryBatch.facility_id.in_(allowed_fac_subquery)) |
+                (InventoryBatch.warehouse_id.in_(allowed_wh_subquery))
+            )
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
             
     if medicine_id:
         query = query.where(InventoryBatch.medicine_id == medicine_id)
@@ -207,7 +251,7 @@ def add_inventory(
         
     medicine = require(db, Medicine, payload.medicine_id, "Medicine")
     
-    # Enforce scope
+    # Enforce scope with DB validation
     verify_scope(current_user, facility_id=payload.facility_id, warehouse_id=payload.warehouse_id, db=db)
     
     # Additional validation to ensure warehouse manager uses their warehouse ID
@@ -265,9 +309,26 @@ def list_consumption(
                 detail="Access denied: you can only view consumption records for your assigned facility."
             )
         facility_id = current_user.facility_id
-        
-    if facility_id:
         query = query.where(ConsumptionRecord.facility_id == facility_id)
+
+    elif current_user.role == UserRole.DISTRICT_ADMIN.value:
+        if not current_user.district_id:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No assigned district")
+        
+        if facility_id:
+            fac = db.get(Facility, facility_id)
+            if fac and fac.district_id != current_user.district_id:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Access denied: Cannot access consumption for a facility outside your district"
+                )
+            query = query.where(ConsumptionRecord.facility_id == facility_id)
+        else:
+            allowed_fac_subquery = select(Facility.id).where(Facility.district_id == current_user.district_id)
+            query = query.where(ConsumptionRecord.facility_id.in_(allowed_fac_subquery))
+    else:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+        
     if medicine_id:
         query = query.where(ConsumptionRecord.medicine_id == medicine_id)
     if from_date:
@@ -287,8 +348,8 @@ def record_consumption(
     medicine = require(db, Medicine, payload.medicine_id, "Medicine")
     facility = require(db, Facility, payload.facility_id, "Facility")
     
-    # Enforce Scope
-    verify_scope(current_user, facility_id=payload.facility_id)
+    # Enforce Scope with db verification
+    verify_scope(current_user, facility_id=payload.facility_id, db=db)
     
     record = ConsumptionRecord(**payload.model_dump())
     db.add(record)
@@ -317,7 +378,17 @@ def list_audit_logs(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN]))
 ):
-    query = select(AuditLog).order_by(AuditLog.timestamp.desc())
+    if not current_user.district_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No assigned district")
+
+    allowed_facility_ids = select(Facility.id).where(Facility.district_id == current_user.district_id)
+    allowed_user_ids = select(User.id).where(User.district_id == current_user.district_id)
+
+    query = select(AuditLog).where(
+        (AuditLog.facility_id.in_(allowed_facility_ids)) |
+        (AuditLog.user_id.in_(allowed_user_ids))
+    ).order_by(AuditLog.timestamp.desc())
+
     if action:
         query = query.where(AuditLog.action == action)
     if entity:
@@ -334,9 +405,16 @@ def list_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role([UserRole.DISTRICT_ADMIN]))
 ):
-    query = select(User).order_by(User.name)
-    if district_id:
-        query = query.where(User.district_id == district_id)
+    if not current_user.district_id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="No assigned district")
+
+    if district_id is not None and district_id != current_user.district_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied: Cannot query users outside your assigned district"
+        )
+
+    query = select(User).where(User.district_id == current_user.district_id).order_by(User.name)
     if role:
         query = query.where(User.role == role)
     return db.scalars(query).all()
